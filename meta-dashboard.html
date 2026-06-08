@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta Performance Agent — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #08080d; --bg2: #0d0d15; --bg3: #12121a; --bg4: #1a1a28;
+  --border: #1e1e2e; --border2: #2a2a3a;
+  --text: #f0f0f5; --text2: #ccccdd; --text3: #888899; --text4: #555566;
+  --accent: #6366f1; --accent2: #4f46e5; --accent3: #818cf8;
+  --green: #22c55e; --green-bg: #0a2010; --green-bd: #1a4a2a;
+  --yellow: #facc15; --yellow2: #a3e635;
+  --red: #ef4444; --red-bg: #1a0a0a; --red-bd: #3a1515;
+  --purple: #c4b5fd;
+  --font: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+}
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.5; }
+input, button, select { font-family: inherit; }
+.container { max-width: 1280px; margin: 0 auto; padding: 24px 20px; }
+
+/* Token gate */
+.gate { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.gate-card {
+  background: linear-gradient(145deg, var(--bg3), var(--bg4));
+  border: 1px solid var(--border2); border-radius: 16px;
+  padding: 48px 40px; max-width: 480px; width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+.gate-label { font-size: 13px; letter-spacing: 3px; color: var(--accent); font-weight: 700; margin-bottom: 8px; font-family: var(--mono); }
+.gate-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+.gate-desc { color: var(--text3); font-size: 14px; margin-bottom: 32px; line-height: 1.6; }
+.gate-input {
+  width: 100%; padding: 14px 16px; font-size: 14px;
+  background: var(--bg2); border: 1px solid var(--border2); border-radius: 10px;
+  color: var(--text2); outline: none; font-family: var(--mono); transition: border .2s;
+}
+.gate-input:focus { border-color: var(--accent); }
+.gate-btn {
+  width: 100%; margin-top: 16px; padding: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; border: none; border-radius: 10px; font-size: 15px;
+  font-weight: 700; cursor: pointer; transition: all .2s;
+}
+.gate-btn:disabled { background: var(--bg4); color: var(--text4); cursor: default; }
+.gate-btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(99,102,241,.3); }
+
+/* Header */
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.header-label { font-size: 11px; letter-spacing: 3px; color: var(--accent); font-weight: 700; font-family: var(--mono); }
+.header-title { font-size: 22px; font-weight: 800; margin-top: 4px; }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-sm {
+  padding: 8px 16px; background: var(--bg4); border: 1px solid var(--border2);
+  border-radius: 8px; color: var(--text3); font-size: 12px; cursor: pointer; font-weight: 600;
+  transition: all .15s;
+}
+.btn-sm:hover { background: var(--bg3); color: var(--text2); border-color: var(--accent); }
+
+/* Summary cards */
+.cards { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.card {
+  background: linear-gradient(145deg, var(--bg3), #161622);
+  border: 1px solid var(--border); border-radius: 12px;
+  padding: 20px 22px; flex: 1; min-width: 150px;
+}
+.card-label { font-size: 12px; color: var(--text4); letter-spacing: 1px; font-weight: 600; margin-bottom: 8px; font-family: var(--mono); }
+.card-value { font-size: 26px; font-weight: 800; }
+.card-sub { font-size: 12px; color: var(--text4); margin-top: 4px; }
+
+/* Controls */
+.controls { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+.tab-group {
+  display: flex; background: var(--bg3); border-radius: 10px;
+  border: 1px solid var(--border); overflow: hidden;
+}
+.tab-btn {
+  padding: 9px 16px; background: transparent; color: var(--text4);
+  border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s;
+}
+.tab-btn.active { background: var(--accent); color: #fff; }
+.tab-btn:not(.active):hover { color: var(--text3); }
+
+/* Table */
+.table-wrap {
+  background: var(--bg2); border-radius: 14px; border: 1px solid var(--bg4);
+  overflow-x: auto; box-shadow: 0 4px 20px rgba(0,0,0,.3);
+}
+table { width: 100%; border-collapse: collapse; min-width: 900px; }
+th {
+  padding: 12px 14px; text-align: right; font-size: 11px; letter-spacing: .5px;
+  color: var(--text4); font-weight: 700; border-bottom: 1px solid var(--border);
+  cursor: pointer; user-select: none; white-space: nowrap; font-family: var(--mono);
+}
+th:first-child { text-align: left; min-width: 200px; }
+th:hover { color: var(--text3); }
+td {
+  padding: 12px 14px; text-align: right; font-size: 13px;
+  border-bottom: 1px solid #111118; color: var(--text2); white-space: nowrap;
+}
+td:first-child { text-align: left; font-weight: 600; max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+tr:nth-child(even) { background: #0b0b12; }
+tr.paused { opacity: .45; }
+
+/* Controls in table */
+.toggle-btn {
+  padding: 5px 14px; font-size: 11px; font-weight: 700; border-radius: 6px;
+  border: none; cursor: pointer; transition: all .15s; min-width: 44px;
+}
+.toggle-on { background: var(--green-bg); color: var(--green); }
+.toggle-off { background: var(--red-bg); color: var(--red); }
+.toggle-btn:hover { filter: brightness(1.3); }
+.budget-input {
+  width: 100px; padding: 5px 8px; font-size: 11px;
+  background: #0a0a12; border: 1px solid var(--border2); border-radius: 6px;
+  color: var(--text2); text-align: right; font-family: var(--mono); outline: none;
+}
+.budget-input:focus { border-color: var(--accent); }
+.budget-apply {
+  padding: 5px 10px; font-size: 11px; font-weight: 700;
+  border-radius: 6px; border: none; cursor: pointer;
+  background: #1a1a40; color: var(--accent3); transition: all .15s;
+}
+.budget-apply:hover { background: #252560; }
+
+/* Toast */
+.toast {
+  position: fixed; top: 20px; right: 20px; padding: 12px 20px;
+  border-radius: 10px; font-size: 13px; font-weight: 600; z-index: 999;
+  box-shadow: 0 10px 30px rgba(0,0,0,.4); transition: opacity .3s;
+}
+.toast-ok { background: var(--green-bg); border: 1px solid var(--green-bd); color: var(--green); }
+.toast-err { background: var(--red-bg); border: 1px solid var(--red-bd); color: var(--red); }
+
+/* Loading */
+.loading { padding: 60px; text-align: center; color: var(--text4); }
+.spinner { font-size: 28px; margin-bottom: 12px; animation: spin 1s linear infinite; display: inline-block; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* Error */
+.error-box { padding: 14px 18px; background: var(--red-bg); border: 1px solid var(--red-bd); border-radius: 10px; color: var(--red); margin-bottom: 20px; font-size: 13px; }
+
+/* Footer */
+.footer { margin-top: 16px; font-size: 11px; color: #333; text-align: center; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cards { flex-direction: column; }
+  .card { min-width: unset; }
+  .card-value { font-size: 22px; }
+  .header-title { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Token Gate -->
+<div id="gate" class="gate">
+  <div class="gate-card">
+    <div class="gate-label">META PERFORMANCE AGENT</div>
+    <h1 class="gate-title">대시보드 연결</h1>
+    <p class="gate-desc">Meta 장기 액세스 토큰을 입력하세요.<br>토큰은 이 브라우저에 안전하게 저장됩니다.</p>
+    <input type="password" id="token-input" class="gate-input" placeholder="EAAX..." autocomplete="off">
+    <button id="connect-btn" class="gate-btn" disabled>연결하기</button>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" class="container" style="display:none">
+  <div class="header">
+    <div>
+      <div class="header-label">META PERFORMANCE AGENT</div>
+      <h1 class="header-title">프로그 광고 대시보드</h1>
+    </div>
+    <div class="header-actions">
+      <button class="btn-sm" onclick="fetchData()">🔄 새로고침</button>
+      <button class="btn-sm" onclick="exportCSV()">📥 CSV</button>
+      <button class="btn-sm" onclick="disconnect()">연결 해제</button>
+    </div>
+  </div>
+
+  <div id="error-area"></div>
+  <div id="toast-area"></div>
+
+  <!-- Summary -->
+  <div class="cards" id="summary-cards">
+    <div class="card"><div class="card-label">ROAS</div><div class="card-value" id="s-roas">—</div><div class="card-sub" id="s-revenue"></div></div>
+    <div class="card"><div class="card-label">지출</div><div class="card-value" id="s-spend">—</div><div class="card-sub" id="s-spend-sub"></div></div>
+    <div class="card"><div class="card-label">전환</div><div class="card-value" id="s-conv">—</div><div class="card-sub" id="s-ctr"></div></div>
+    <div class="card"><div class="card-label">LP→구매율</div><div class="card-value" id="s-lpcvr">—</div><div class="card-sub" id="s-lpviews"></div></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="tab-group" id="date-tabs"></div>
+    <div class="tab-group" id="level-tabs"></div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="footer" id="footer-info"></div>
+</div>
+
+<script>
+const API = 'https://graph.facebook.com/v21.0';
+const ACCT = 'act_1517925575938989';
+const STORE_KEY = 'meta-dash-token-v2';
+
+const DATES = [
+  { label: '오늘', fn: () => { const t = kstToday(); return [t,t]; } },
+  { label: '어제', fn: () => { const d = kstDaysAgo(1); return [d,d]; } },
+  { label: '최근 7일', fn: () => [kstDaysAgo(6), kstToday()] },
+  { label: '최근 14일', fn: () => [kstDaysAgo(13), kstToday()] },
+  { label: '최근 30일', fn: () => [kstDaysAgo(29), kstToday()] },
+];
+const LEVELS = [
+  { key: 'campaign', label: '캠페인' },
+  { key: 'adset', label: '광고 세트' },
+  { key: 'ad', label: '광고' },
+];
+
+let token = '';
+let dateIdx = 0, levelIdx = 0;
+let rows = [], statuses = {};
+let sortCol = 'spend', sortDir = 'desc';
+let editBudgets = {};
+
+// ── Date helpers ──
+function kstNow() { return new Date(Date.now() + 9*3600000); }
+function fmt(d) { return d.toISOString().slice(0,10); }
+function kstToday() { return fmt(kstNow()); }
+function kstDaysAgo(n) { const d = kstNow(); d.setDate(d.getDate()-n); return fmt(d); }
+
+// ── API ──
+async function metaGet(path, params={}) {
+  const u = new URL(`${API}/${path}`);
+  u.searchParams.set('access_token', token);
+  Object.entries(params).forEach(([k,v]) => u.searchParams.set(k,v));
+  const r = await fetch(u.toString());
+  const d = await r.json();
+  if (d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+  return d;
+}
+
+async function metaPost(path, body={}) {
+  const u = new URL(`${API}/${path}`);
+  const fd = new URLSearchParams();
+  fd.set('access_token', token);
+  Object.entries(body).forEach(([k,v]) => fd.set(k, String(v)));
+  const r = await fetch(u.toString(), { method:'POST', body:fd });
+  const d = await r.json();
+  if (d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+  return d;
+}
+
+// ── Parse ──
+function parseRow(r) {
+  const spend = parseFloat(r.spend||0);
+  const impressions = parseInt(r.impressions||0);
+  const clicks = parseInt(r.clicks||0);
+  const ctr = parseFloat(r.ctr||0);
+  let purchases=0, revenue=0, lpViews=0;
+  (r.actions||[]).forEach(a => {
+    if (['offsite_conversion.fb_pixel_purchase','purchase'].includes(a.action_type)) purchases = parseInt(a.value||0);
+    if (a.action_type === 'landing_page_view') lpViews = parseInt(a.value||0);
+  });
+  (r.action_values||[]).forEach(a => {
+    if (['offsite_conversion.fb_pixel_purchase','purchase'].includes(a.action_type)) revenue = parseFloat(a.value||0);
+  });
+  const roas = spend > 0 ? (revenue/spend*100).toFixed(1) : '—';
+  const lpCvr = lpViews > 0 ? (purchases/lpViews*100).toFixed(2) : '—';
+  return {
+    id: r.campaign_id||r.adset_id||r.ad_id||'',
+    name: r.campaign_name||r.adset_name||r.ad_name||'',
+    campaign_id: r.campaign_id||'', adset_id: r.adset_id||'', ad_id: r.ad_id||'',
+    spend, impressions, clicks, ctr: ctr.toFixed(2),
+    purchases, revenue, roas, lpViews, lpCvr,
+  };
+}
+
+function roasColor(v) {
+  const n = parseFloat(v); if (isNaN(n)) return 'var(--text4)';
+  if (n >= 250) return 'var(--green)';
+  if (n >= 200) return 'var(--yellow2)';
+  if (n >= 180) return 'var(--yellow)';
+  return 'var(--red)';
+}
+
+// ── Toast ──
+function toast(msg, ok=true) {
+  const el = document.createElement('div');
+  el.className = `toast ${ok ? 'toast-ok' : 'toast-err'}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, 3000);
+}
+
+// ── Init tabs ──
+function initTabs() {
+  const dg = document.getElementById('date-tabs');
+  DATES.forEach((d,i) => {
+    const b = document.createElement('button');
+    b.className = `tab-btn ${i===dateIdx?'active':''}`;
+    b.textContent = d.label;
+    b.onclick = () => { dateIdx=i; updateTabActive(dg,i); fetchData(); };
+    dg.appendChild(b);
+  });
+  const lg = document.getElementById('level-tabs');
+  LEVELS.forEach((l,i) => {
+    const b = document.createElement('button');
+    b.className = `tab-btn ${i===levelIdx?'active':''}`;
+    b.textContent = l.label;
+    b.onclick = () => { levelIdx=i; updateTabActive(lg,i); fetchData(); };
+    lg.appendChild(b);
+  });
+}
+function updateTabActive(group, idx) {
+  [...group.children].forEach((b,i) => b.classList.toggle('active', i===idx));
+}
+
+// ── Fetch data ──
+async function fetchData() {
+  const tbody = document.getElementById('tbody');
+  const errArea = document.getElementById('error-area');
+  errArea.innerHTML = '';
+  tbody.innerHTML = '<tr><td colspan="8" class="loading"><div class="spinner">⏳</div><div>데이터 수집 중...</div></td></tr>';
+
+  try {
+    const [since, until] = DATES[dateIdx].fn();
+    const level = LEVELS[levelIdx].key;
+    const fields = 'campaign_id,campaign_name,adset_id,adset_name,ad_id,ad_name,spend,impressions,clicks,ctr,actions,action_values';
+
+    const data = await metaGet(`${ACCT}/insights`, {
+      fields, level,
+      time_range: JSON.stringify({since, until}),
+      limit: '500',
+    });
+
+    rows = (data.data||[]).map(parseRow);
+
+    // Fetch statuses
+    if (level === 'ad' || level === 'adset') {
+      const objType = level === 'ad' ? 'ads' : 'adsets';
+      const sData = await metaGet(`${ACCT}/${objType}`, { fields: 'id,name,status,daily_budget', limit: '500' });
+      statuses = {};
+      (sData.data||[]).forEach(it => {
+        statuses[it.id] = { status: it.status, daily_budget: it.daily_budget ? parseInt(it.daily_budget)/100 : null };
+      });
+    } else {
+      statuses = {};
+    }
+
+    editBudgets = {};
+    renderSummary();
+    renderTable();
+  } catch(e) {
+    errArea.innerHTML = `<div class="error-box">⚠️ ${e.message}</div>`;
+    tbody.innerHTML = '';
+  }
+}
+
+// ── Render summary ──
+function renderSummary() {
+  const t = rows.reduce((a,r) => ({
+    spend: a.spend+r.spend, purchases: a.purchases+r.purchases,
+    revenue: a.revenue+r.revenue, lpViews: a.lpViews+r.lpViews,
+    clicks: a.clicks+r.clicks, impressions: a.impressions+r.impressions,
+  }), {spend:0,purchases:0,revenue:0,lpViews:0,clicks:0,impressions:0});
+
+  const roas = t.spend>0 ? (t.revenue/t.spend*100).toFixed(1) : '—';
+  const ctr = t.impressions>0 ? (t.clicks/t.impressions*100).toFixed(2) : '—';
+  const lpCvr = t.lpViews>0 ? (t.purchases/t.lpViews*100).toFixed(2) : '—';
+
+  document.getElementById('s-roas').textContent = `${roas}%`;
+  document.getElementById('s-roas').style.color = roasColor(roas);
+  document.getElementById('s-revenue').textContent = `매출 ${t.revenue.toLocaleString()}원`;
+  document.getElementById('s-spend').textContent = `${t.spend.toLocaleString()}원`;
+  document.getElementById('s-spend-sub').textContent = `노출 ${t.impressions.toLocaleString()}회`;
+  document.getElementById('s-conv').textContent = `${t.purchases}건`;
+  document.getElementById('s-ctr').textContent = `CTR ${ctr}%`;
+  document.getElementById('s-lpcvr').textContent = `${lpCvr}%`;
+  document.getElementById('s-lpviews').textContent = `LP조회 ${t.lpViews.toLocaleString()}회`;
+  document.getElementById('footer-info').textContent = `${DATES[dateIdx].label} · ${LEVELS[levelIdx].label} 단위 · ${rows.length}개 항목 · ${kstToday()}`;
+}
+
+// ── Render table ──
+function renderTable() {
+  const level = LEVELS[levelIdx].key;
+  const hasControls = level === 'ad' || level === 'adset';
+
+  // Sort
+  const sorted = [...rows].sort((a,b) => {
+    let av=a[sortCol], bv=b[sortCol];
+    if (typeof av==='string' && !isNaN(parseFloat(av))) { av=parseFloat(av); bv=parseFloat(bv); }
+    if (av==='—') av=-1; if (bv==='—') bv=-1;
+    return sortDir==='desc' ? (bv>av?1:-1) : (av>bv?1:-1);
+  });
+
+  // Thead
+  const cols = [
+    {key:'name',label:'이름'},{key:'spend',label:'지출'},
+    {key:'ctr',label:'CTR'},{key:'purchases',label:'결과'},
+    {key:'revenue',label:'결과값'},{key:'roas',label:'ROAS'},
+    {key:'lpCvr',label:'LP→구매'},
+  ];
+  if (hasControls) cols.push({key:'_ctrl',label:'제어'});
+
+  const thead = document.getElementById('thead');
+  thead.innerHTML = '<tr>' + cols.map(c => {
+    const icon = sortCol===c.key ? (sortDir==='desc'?' ↓':' ↑') : '';
+    const align = c.key==='name' ? 'text-align:left' : c.key==='_ctrl' ? 'text-align:center;cursor:default' : '';
+    return `<th style="${align}" ${c.key!=='_ctrl'?`onclick="doSort('${c.key}')"`:''}>${c.label}${icon}</th>`;
+  }).join('') + '</tr>';
+
+  // Tbody
+  const tbody = document.getElementById('tbody');
+  if (sorted.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text4);padding:40px">데이터 없음</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = sorted.map((r,i) => {
+    const objId = level==='ad' ? r.ad_id : level==='adset' ? r.adset_id : r.campaign_id;
+    const st = statuses[objId];
+    const isActive = st?.status === 'ACTIVE';
+    const budget = st?.daily_budget;
+    const paused = st && !isActive ? ' paused' : '';
+
+    let ctrlTd = '';
+    if (hasControls) {
+      if (level === 'ad' && st) {
+        ctrlTd = `<td style="text-align:center"><button class="toggle-btn ${isActive?'toggle-on':'toggle-off'}" onclick="toggleAd('${objId}','${st.status}')">${isActive?'ON':'OFF'}</button></td>`;
+      } else if (level === 'adset' && budget !== null && budget !== undefined) {
+        const ev = editBudgets[objId] !== undefined ? editBudgets[objId] : budget;
+        const changed = editBudgets[objId] !== undefined && editBudgets[objId] !== budget;
+        ctrlTd = `<td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center;align-items:center"><input class="budget-input" type="number" value="${ev}" onchange="setBudgetEdit('${objId}',this.value)" onfocus="this.select()">${changed?`<button class="budget-apply" onclick="applyBudget('${objId}',${editBudgets[objId]})">적용</button>`:''}</div></td>`;
+      } else {
+        ctrlTd = '<td></td>';
+      }
+    }
+
+    return `<tr class="${paused}" title="${r.name}">
+      <td>${r.name}</td>
+      <td>${r.spend.toLocaleString()}</td>
+      <td>${r.ctr}%</td>
+      <td style="font-weight:700;color:${r.purchases>0?'var(--purple)':'var(--text4)'}">${r.purchases}</td>
+      <td>${r.revenue.toLocaleString()}</td>
+      <td style="font-weight:700;color:${roasColor(r.roas)}">${r.roas}%</td>
+      <td>${r.lpCvr}%</td>
+      ${ctrlTd}
+    </tr>`;
+  }).join('');
+}
+
+// ── Sort ──
+function doSort(col) {
+  if (sortCol===col) sortDir = sortDir==='desc'?'asc':'desc';
+  else { sortCol=col; sortDir='desc'; }
+  renderTable();
+}
+
+// ── Actions ──
+async function toggleAd(id, currentStatus) {
+  const ns = currentStatus==='ACTIVE' ? 'PAUSED' : 'ACTIVE';
+  try {
+    await metaPost(id, { status: ns });
+    statuses[id] = { ...statuses[id], status: ns };
+    toast(`✅ ${ns==='ACTIVE'?'ON':'OFF'} 완료`);
+    renderTable();
+  } catch(e) { toast(`❌ 실패: ${e.message}`, false); }
+}
+
+function setBudgetEdit(id, val) {
+  editBudgets[id] = parseInt(val)||0;
+  renderTable();
+}
+
+async function applyBudget(id, val) {
+  try {
+    await metaPost(id, { daily_budget: Math.round(val*100) });
+    statuses[id] = { ...statuses[id], daily_budget: val };
+    delete editBudgets[id];
+    toast(`✅ 예산 변경: ${val.toLocaleString()}원`);
+    renderTable();
+  } catch(e) { toast(`❌ 예산 변경 실패: ${e.message}`, false); }
+}
+
+// ── CSV ──
+function exportCSV() {
+  const headers = ['이름','지출(원)','노출','클릭','CTR(%)','결과','결과값(원)','ROAS(%)','LP조회','LP→구매율(%)'];
+  const csvRows = [headers.join(',')];
+  rows.forEach(r => {
+    csvRows.push([r.name,r.spend,r.impressions,r.clicks,r.ctr,r.purchases,r.revenue,r.roas,r.lpViews,r.lpCvr].map(v=>`"${v}"`).join(','));
+  });
+  const blob = new Blob(['\uFEFF'+csvRows.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `meta_${LEVELS[levelIdx].key}_${kstToday()}.csv`;
+  a.click();
+}
+
+// ── Connect / Disconnect ──
+function connect(t) {
+  token = t;
+  localStorage.setItem(STORE_KEY, t);
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  initTabs();
+  fetchData();
+}
+
+function disconnect() {
+  token = '';
+  localStorage.removeItem(STORE_KEY);
+  document.getElementById('gate').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+}
+
+// ── Init ──
+(function init() {
+  const saved = localStorage.getItem(STORE_KEY);
+  const input = document.getElementById('token-input');
+  const btn = document.getElementById('connect-btn');
+
+  input.addEventListener('input', () => {
+    btn.disabled = !input.value.startsWith('EAA');
+  });
+  input.addEventListener('keydown', e => {
+    if (e.key==='Enter' && input.value.startsWith('EAA')) connect(input.value.trim());
+  });
+  btn.addEventListener('click', () => {
+    if (input.value.startsWith('EAA')) connect(input.value.trim());
+  });
+
+  if (saved && saved.startsWith('EAA')) {
+    connect(saved);
+  }
+})();
+</script>
+</body>
+</html>
