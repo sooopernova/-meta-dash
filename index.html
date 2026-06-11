@@ -370,7 +370,7 @@ function renderTable(){
   cols+=`<th onclick="ds('roas')">ROAS${si('roas')}</th>`;
   cols+=`<th onclick="ds('lpCvr')">LP→구매${si('lpCvr')}</th>`;
   if(level==='ad')cols+='<th style="text-align:center">ON/OFF</th>';
-  if(level==='adset')cols+='<th style="text-align:center">예산 변경</th>';
+  if(level==='adset'||level==='campaign')cols+='<th style="text-align:center">예산 변경</th>';
 
   document.getElementById('thead').innerHTML='<tr>'+cols+'</tr>';
 
@@ -405,12 +405,12 @@ function renderTable(){
     if(level==='ad'&&st){
       actionCell=`<td style="text-align:center"><button class="toggle-btn ${isActive?'toggle-on':'toggle-off'}" onclick="event.stopPropagation();toggleStatus('${objId}','${st.status}')">${isActive?'ON':'OFF'}</button></td>`;
     }
-    if(level==='adset'){
+    if(level==='adset'||level==='campaign'){
       if(budget!==null&&budget!==undefined){
         const ev=editBudgets[objId]!==undefined?editBudgets[objId]:budget;
         const changed=editBudgets[objId]!==undefined&&editBudgets[objId]!==budget;
-        actionCell=`<td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center;align-items:center"><input class="budget-input" type="number" value="${ev}" onclick="event.stopPropagation()" onchange="event.stopPropagation();sbe('${objId}',this.value)" onfocus="this.select()">${changed?`<button class="budget-apply" onclick="event.stopPropagation();ab('${objId}',${editBudgets[objId]})">적용</button>`:''}</div></td>`;
-      }else{actionCell='<td></td>'}
+        actionCell=`<td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center;align-items:center"><input class="budget-input" type="number" value="${ev}" onclick="event.stopPropagation()" onchange="event.stopPropagation();sbe('${objId}',this.value)" onfocus="this.select()">${changed?`<button class="budget-apply" onclick="event.stopPropagation();ab('${objId}',${editBudgets[objId]},'${level}')">적용</button>`:''}</div></td>`;
+      }else{actionCell='<td style="text-align:center"><span class="budget-display">—</span></td>'}
     }
 
     const rowClass=canDrill?`class="row-link${paused}" onclick="drillDown('${level}','${objId}','${name.replace(/'/g,"\\'")}')"`:paused?`class="${paused.trim()}"`:'';
@@ -430,8 +430,8 @@ async function toggleStatus(id,cur){
   try{await mPost(id,{status:ns});statuses[id]={...statuses[id],status:ns};toast(`✅ ${ns==='ACTIVE'?'ON':'OFF'} 완료`);renderTable()}catch(e){toast(`❌ ${e.message}`,false)}
 }
 function sbe(id,v){editBudgets[id]=parseInt(v)||0;renderTable()}
-async function ab(id,v){
-  try{await mPost(id,{daily_budget:budgetToApi(v)});statuses[id]={...statuses[id],daily_budget:v};delete editBudgets[id];toast(`✅ 예산 변경: ${v.toLocaleString()}원`);renderTable()}catch(e){toast(`❌ ${e.message}`,false)}
+async function ab(id,v,level){
+  try{await mPost(id,{daily_budget:budgetToApi(v)});statuses[id]={...statuses[id],daily_budget:v};delete editBudgets[id];toast(`✅ ${level==='campaign'?'캠페인':'세트'} 예산 변경: ${v.toLocaleString()}원`);renderTable()}catch(e){toast(`❌ ${e.message}`,false)}
 }
 function refresh(){fetchData()}
 
