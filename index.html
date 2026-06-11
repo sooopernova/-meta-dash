@@ -46,6 +46,10 @@ input,button,select{font-family:inherit}
 .header-actions{display:flex;gap:8px;flex-wrap:wrap}
 .btn-sm{padding:8px 16px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text3);font-size:12px;cursor:pointer;font-weight:600;transition:all .15s}
 .btn-sm:hover{background:var(--bg3);color:var(--text2);border-color:var(--accent)}
+.acct-switcher{display:flex;background:var(--bg3);border-radius:10px;border:1px solid var(--border);overflow:hidden;margin-right:auto}
+.acct-btn{padding:8px 18px;background:transparent;color:var(--text4);border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.acct-btn.active{background:var(--accent2);color:#fff}
+.acct-btn:not(.active):hover{color:var(--text3)}
 
 /* Cards */
 .cards{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
@@ -134,6 +138,7 @@ tr.paused{opacity:.45}
       <h1 class="header-title" id="dash-title">광고 대시보드</h1>
     </div>
     <div class="header-actions">
+      <div class="acct-switcher" id="acct-switcher"></div>
       <button class="btn-sm" onclick="refresh()">🔄 새로고침</button>
       <button class="btn-sm" onclick="exportCSV()">📥 CSV</button>
       <button class="btn-sm" onclick="disconnect()">연결 해제</button>
@@ -160,6 +165,13 @@ tr.paused{opacity:.45}
 const API='https://graph.facebook.com/v21.0';
 const SK='meta-dash-v3';
 let TOKEN='', ACCT='act_1517925575938989';
+
+// ── 광고 계정 목록 ──
+const ACCOUNTS=[
+  {id:'act_1517925575938989',label:'🐸 FROG',name:'프로그'},
+  {id:'act_1326257743028917',label:'🧴 오리엔',name:'오리엔'},
+];
+let acctIdx=0;
 
 // State
 let dateIdx=0, sortCol='spend', sortDir='desc';
@@ -437,13 +449,19 @@ function exportCSV(){
 }
 
 // Connect
-function connect(t,acct){
-  TOKEN=t;ACCT=acct||'act_1517925575938989';
-  localStorage.setItem(SK,JSON.stringify({token:t,acct:ACCT}));
+function connect(t,acct,savedAcctIdx){
+  TOKEN=t;ACCT=acct||ACCOUNTS[0].id;
+  // Find matching account index
+  acctIdx=savedAcctIdx||0;
+  const found=ACCOUNTS.findIndex(a=>a.id===ACCT);
+  if(found>=0)acctIdx=found;
+  ACCT=ACCOUNTS[acctIdx].id;
+  localStorage.setItem(SK,JSON.stringify({token:t,acct:ACCT,acctIdx}));
   document.getElementById('gate').style.display='none';
   document.getElementById('dashboard').style.display='block';
   navStack=[];
   initDateTabs();
+  initAccountSwitcher();
   detectCurrency().then(()=>fetchData());
 }
 function disconnect(){
@@ -459,6 +477,24 @@ function initDateTabs(){
     g.appendChild(b);
   });
 }
+function initAccountSwitcher(){
+  const g=document.getElementById('acct-switcher');g.innerHTML='';
+  ACCOUNTS.forEach((a,i)=>{
+    const b=document.createElement('button');b.className=`acct-btn ${i===acctIdx?'active':''}`;b.textContent=a.label;
+    b.onclick=()=>switchAccount(i);
+    g.appendChild(b);
+  });
+  document.getElementById('dash-title').textContent=ACCOUNTS[acctIdx].name+' 광고 대시보드';
+}
+function switchAccount(i){
+  acctIdx=i;ACCT=ACCOUNTS[i].id;
+  navStack=[];sortCol='spend';sortDir='desc';
+  const g=document.getElementById('acct-switcher');
+  [...g.children].forEach((c,j)=>c.classList.toggle('active',j===i));
+  document.getElementById('dash-title').textContent=ACCOUNTS[i].name+' 광고 대시보드';
+  localStorage.setItem(SK,JSON.stringify({token:TOKEN,acct:ACCT,acctIdx}));
+  detectCurrency().then(()=>fetchData());
+}
 
 // Init
 (function(){
@@ -472,7 +508,7 @@ function initDateTabs(){
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&inp.value.startsWith('EAA'))connect(inp.value.trim(),acctInp.value.trim())});
   btn.addEventListener('click',()=>{if(inp.value.startsWith('EAA'))connect(inp.value.trim(),acctInp.value.trim())});
 
-  if(saved){try{const s=JSON.parse(saved);if(s.token&&s.token.startsWith('EAA'))connect(s.token,s.acct)}catch{}}
+  if(saved){try{const s=JSON.parse(saved);if(s.token&&s.token.startsWith('EAA'))connect(s.token,s.acct,s.acctIdx)}catch{}}
 })();
 </script>
 </body>
