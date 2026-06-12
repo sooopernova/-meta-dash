@@ -152,11 +152,17 @@ tr.paused{opacity:.45}
     <div class="card"><div class="card-label">LP→구매율</div><div class="card-value" id="s-lp">—</div><div class="card-sub" id="s-lpv"></div></div>
   </div>
   <div class="controls">
+    <div class="tab-group" id="view-tabs"></div>
     <div class="tab-group" id="date-tabs"></div>
   </div>
-  <div class="breadcrumb" id="breadcrumb"></div>
-  <div class="table-wrap">
-    <table><thead id="thead"></thead><tbody id="tbody"></tbody></table>
+  <div id="meta-section">
+    <div class="breadcrumb" id="breadcrumb"></div>
+    <div class="table-wrap">
+      <table><thead id="thead"></thead><tbody id="tbody"></tbody></table>
+    </div>
+  </div>
+  <div id="cafe24-section" style="display:none;background:#0d0d15;border-radius:14px;border:1px solid #1a1a28;padding:20px;margin-top:4px">
+    <div id="cafe24-content" style="text-align:center;color:#555;padding:20px">카페24 매출 탭을 선택하세요</div>
   </div>
   <div class="footer" id="footer"></div>
 </div>
@@ -165,11 +171,12 @@ tr.paused{opacity:.45}
 const API='https://graph.facebook.com/v21.0';
 const SK='meta-dash-v3';
 let TOKEN='', ACCT='act_1517925575938989';
+const C24='https://script.google.com/macros/s/AKfycbxIrVC0h2ZStiPmImzTGgrFJiJucXtns_IjDVGvAp9Z3lronMixenjySQXLflp-oY4_/exec';
 
 // ── 광고 계정 목록 ──
 const ACCOUNTS=[
-  {id:'act_1517925575938989',label:'🐸 FROG',name:'프로그'},
-  {id:'act_1326257743028917',label:'🧴 오리엔',name:'오리엔'},
+  {id:'act_1517925575938989',label:'🐸 FROG',name:'프로그',c24:'frog'},
+  {id:'act_1326257743028917',label:'🧴 오리엔',name:'오리엔',c24:'orien'},
 ];
 let acctIdx=0;
 
@@ -182,6 +189,7 @@ let accountCurrency='KRW', currencyOffset=1; // KRW=1, USD=100
 const DATES=[
   {label:'오늘',fn:()=>{const t=kd(0);return[t,t]}},
   {label:'어제',fn:()=>{const t=kd(1);return[t,t]}},
+  {label:'최근 4일',fn:()=>[kd(3),kd(0)]},
   {label:'최근 7일',fn:()=>[kd(6),kd(0)]},
   {label:'최근 14일',fn:()=>[kd(13),kd(0)]},
   {label:'최근 30일',fn:()=>[kd(29),kd(0)]},
@@ -351,8 +359,13 @@ function renderTable(){
   const level=currentLevel();
   const canDrill=level!=='ad';
 
+  const _getBudget=(r)=>{
+    const oid=level==='ad'?r.ad_id:level==='adset'?r.adset_id:r.campaign_id;
+    return statuses[oid]?.daily_budget||0;
+  };
   const sorted=[...rows].sort((a,b)=>{
-    let av=a[sortCol],bv=b[sortCol];
+    let av=sortCol==='budget'?_getBudget(a):a[sortCol];
+    let bv=sortCol==='budget'?_getBudget(b):b[sortCol];
     if(typeof av==='string'&&!isNaN(parseFloat(av))){av=parseFloat(av);bv=parseFloat(bv)}
     if(av==='—')av=-1;if(bv==='—')bv=-1;
     return sortDir==='desc'?(bv>av?1:-1):(av>bv?1:-1);
@@ -407,9 +420,9 @@ function renderTable(){
     }
     if(level==='adset'||level==='campaign'){
       if(budget!==null&&budget!==undefined){
-        const ev=editBudgets[objId]!==undefined?editBudgets[objId]:budget;
-        const changed=editBudgets[objId]!==undefined&&editBudgets[objId]!==budget;
-        actionCell=`<td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center;align-items:center"><input class="budget-input" type="number" value="${ev}" onclick="event.stopPropagation()" onchange="event.stopPropagation();sbe('${objId}',this.value)" onfocus="this.select()">${changed?`<button class="budget-apply" onclick="event.stopPropagation();ab('${objId}',${editBudgets[objId]},'${level}')">적용</button>`:''}</div></td>`;
+        const evMan=editBudgets[objId]!==undefined?editBudgets[objId]:Math.round(budget/10000);
+        const changed=editBudgets[objId]!==undefined&&editBudgets[objId]!==Math.round(budget/10000);
+        actionCell=`<td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center;align-items:center"><input class="budget-input" type="number" step="0.5" value="${evMan}" onclick="event.stopPropagation()" onchange="event.stopPropagation();sbe('${objId}',this.value)" onfocus="this.select()"><span style="font-size:11px;color:#555">만원</span>${changed?`<button class="budget-apply" onclick="event.stopPropagation();ab('${objId}',${editBudgets[objId]},'${level}')">적용</button>`:''}</div></td>`;
       }else{actionCell='<td style="text-align:center"><span class="budget-display">—</span></td>'}
     }
 
@@ -429,11 +442,12 @@ async function toggleStatus(id,cur){
   const ns=cur==='ACTIVE'?'PAUSED':'ACTIVE';
   try{await mPost(id,{status:ns});statuses[id]={...statuses[id],status:ns};toast(`✅ ${ns==='ACTIVE'?'ON':'OFF'} 완료`);renderTable()}catch(e){toast(`❌ ${e.message}`,false)}
 }
-function sbe(id,v){editBudgets[id]=parseInt(v)||0;renderTable()}
-async function ab(id,v,level){
-  try{await mPost(id,{daily_budget:budgetToApi(v)});statuses[id]={...statuses[id],daily_budget:v};delete editBudgets[id];toast(`✅ ${level==='campaign'?'캠페인':'세트'} 예산 변경: ${v.toLocaleString()}원`);renderTable()}catch(e){toast(`❌ ${e.message}`,false)}
+function sbe(id,v){editBudgets[id]=parseFloat(v)||0;renderTable()}
+async function ab(id,vMan,level){
+  const vWon=Math.round(vMan*10000);
+  try{await mPost(id,{daily_budget:budgetToApi(vWon)});statuses[id]={...statuses[id],daily_budget:vWon};delete editBudgets[id];toast(`✅ 예산 변경: ${vMan}만원 (${vWon.toLocaleString()}원)`);renderTable()}catch(e){toast(`❌ ${e.message}`,false)}
 }
-function refresh(){fetchData()}
+function refresh(){if(curView==='cafe24')fetchCafe24();else fetchData()}
 
 // CSV
 function exportCSV(){
@@ -448,6 +462,64 @@ function exportCSV(){
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`meta_${currentLevel()}_${kd(0)}.csv`;a.click();
 }
 
+// ── 카페24 매출 ──
+let curView='meta';
+async function fetchCafe24(){
+  const el=document.getElementById('cafe24-content');
+  el.innerHTML='<div style="text-align:center;padding:30px;color:#555"><span style="font-size:24px;display:inline-block;animation:spin 1s linear infinite">⏳</span><div style="margin-top:8px">카페24 매출 조회 중...</div></div>';
+  const[since,until]=DATES[dateIdx].fn();
+  const store=ACCOUNTS[acctIdx].c24;
+  try{
+    const r=await fetch(C24+'?store='+store+'&action=summary&start='+since+'&end='+until);
+    const d=await r.json();
+    if(!d.success)throw new Error(d.error||'Unknown error');
+    const data=d.data;
+    const metaSpend=rows.reduce((a,r)=>a+r.spend,0);
+    const trueRoas=metaSpend>0?((data.total_revenue/metaSpend)*100).toFixed(1):'—';
+    const rc2=v=>{const n=parseFloat(v);if(isNaN(n))return'#555';if(n>=250)return'#22c55e';if(n>=200)return'#a3e635';if(n>=180)return'#facc15';return'#ef4444'};
+    el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+      <div style="background:linear-gradient(145deg,#0d0d20,#161628);border:1px solid #6366f1;border-radius:12px;padding:18px 20px">
+        <div style="font-size:11px;color:#555;letter-spacing:1px;font-weight:600;margin-bottom:6px;font-family:var(--mono)">진짜 ROAS (카페24 ÷ 메타 지출)</div>
+        <div style="font-size:24px;font-weight:800;color:${rc2(trueRoas)}">${trueRoas}%</div>
+        <div style="font-size:12px;color:#555;margin-top:4px">메타 지출 ${metaSpend.toLocaleString()}원 기준</div>
+      </div>
+      <div style="background:linear-gradient(145deg,#12121a,#161622);border:1px solid #1e1e2e;border-radius:12px;padding:18px 20px">
+        <div style="font-size:11px;color:#555;letter-spacing:1px;font-weight:600;margin-bottom:6px;font-family:var(--mono)">카페24 실매출</div>
+        <div style="font-size:24px;font-weight:800">${data.total_revenue.toLocaleString()}원</div>
+        <div style="font-size:12px;color:#555;margin-top:4px">유효 주문 ${data.paid_orders}건</div>
+      </div>
+      <div style="background:linear-gradient(145deg,#12121a,#161622);border:1px solid #1e1e2e;border-radius:12px;padding:18px 20px">
+        <div style="font-size:11px;color:#555;letter-spacing:1px;font-weight:600;margin-bottom:6px;font-family:var(--mono)">총 주문</div>
+        <div style="font-size:24px;font-weight:800">${data.total_orders}건</div>
+        <div style="font-size:12px;color:#555;margin-top:4px">취소/반품 ${data.cancelled_orders}건</div>
+      </div>
+      <div style="background:linear-gradient(145deg,#12121a,#161622);border:1px solid #1e1e2e;border-radius:12px;padding:18px 20px">
+        <div style="font-size:11px;color:#555;letter-spacing:1px;font-weight:600;margin-bottom:6px;font-family:var(--mono)">객단가</div>
+        <div style="font-size:24px;font-weight:800">${data.avg_order_value.toLocaleString()}원</div>
+        <div style="font-size:12px;color:#555;margin-top:4px">${d.period.start} ~ ${d.period.end}</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:#333">조회: ${new Date(d.fetched_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})} · ${ACCOUNTS[acctIdx].name} (${d.mall_id||''})</div>`;
+  }catch(e){
+    el.innerHTML='<div style="padding:30px;text-align:center;color:#ef4444">❌ '+e.message+'</div>';
+  }
+}
+function switchView(v){
+  curView=v;
+  document.getElementById('meta-section').style.display=v==='meta'?'block':'none';
+  document.getElementById('cafe24-section').style.display=v==='cafe24'?'block':'none';
+  const g=document.getElementById('view-tabs');
+  [...g.children].forEach(c=>c.classList.toggle('active',c.dataset.v===v));
+  if(v==='cafe24')fetchCafe24();
+}
+function initViewTabs(){
+  const g=document.getElementById('view-tabs');g.innerHTML='';
+  [{k:'meta',l:'📊 메타'},{k:'cafe24',l:'💰 카페24 매출'}].forEach(t=>{
+    const b=document.createElement('button');b.className='tab-btn'+(t.k===curView?' active':'');
+    b.textContent=t.l;b.dataset.v=t.k;b.onclick=()=>switchView(t.k);g.appendChild(b);
+  });
+}
+
 // Connect
 function connect(t,acct,savedAcctIdx){
   TOKEN=t;ACCT=acct||ACCOUNTS[0].id;
@@ -459,7 +531,8 @@ function connect(t,acct,savedAcctIdx){
   localStorage.setItem(SK,JSON.stringify({token:t,acct:ACCT,acctIdx}));
   document.getElementById('gate').style.display='none';
   document.getElementById('dashboard').style.display='block';
-  navStack=[];
+  navStack=[];curView='meta';
+  initViewTabs();
   initDateTabs();
   initAccountSwitcher();
   detectCurrency().then(()=>fetchData());
@@ -473,7 +546,7 @@ function initDateTabs(){
   const g=document.getElementById('date-tabs');g.innerHTML='';
   DATES.forEach((d,i)=>{
     const b=document.createElement('button');b.className=`tab-btn ${i===dateIdx?'active':''}`;b.textContent=d.label;
-    b.onclick=()=>{dateIdx=i;[...g.children].forEach((c,j)=>c.classList.toggle('active',j===i));navStack=[];fetchData()};
+    b.onclick=()=>{dateIdx=i;[...g.children].forEach((c,j)=>c.classList.toggle('active',j===i));navStack=[];if(curView==='cafe24')fetchCafe24();else fetchData()};
     g.appendChild(b);
   });
 }
