@@ -3,26 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meta Performance Agent — Dashboard v2</title>
+<title>FUNGUS Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#08080d;--bg2:#0d0d15;--bg3:#12121a;--bg4:#1a1a28;
-  --border:#1e1e2e;--border2:#2a2a3a;
-  --text:#f0f0f5;--text2:#ccccdd;--text3:#888899;--text4:#555566;
-  --accent:#6366f1;--accent2:#4f46e5;--accent3:#818cf8;
-  --green:#22c55e;--green-bg:#0a2010;--green-bd:#1a4a2a;
-  --yellow:#facc15;--yellow2:#a3e635;
-  --red:#ef4444;--red-bg:#1a0a0a;--red-bd:#3a1515;
-  --purple:#c4b5fd;
-  --font:'Noto Sans KR',-apple-system,sans-serif;
-  --mono:'JetBrains Mono','SF Mono',monospace;
-}
+:root{--bg:#08080d;--bg2:#0d0d15;--bg3:#12121a;--bg4:#1a1a28;--border:#1e1e2e;--border2:#2a2a3a;--text:#f0f0f5;--text2:#ccccdd;--text3:#888899;--text4:#555566;--accent:#6366f1;--accent2:#4f46e5;--accent3:#818cf8;--green:#22c55e;--green-bg:#0a2010;--yellow:#facc15;--yellow2:#a3e635;--red:#ef4444;--red-bg:#1a0a0a;--purple:#c4b5fd;--font:'Noto Sans KR',-apple-system,sans-serif;--mono:'JetBrains Mono','SF Mono',monospace}
 body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5}
 input,button,select{font-family:inherit}
-.container{max-width:1280px;margin:0 auto;padding:24px 20px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px}
 
 /* Gate */
 .gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -34,157 +23,121 @@ input,button,select{font-family:inherit}
 .gate-input:focus{border-color:var(--accent)}
 .gate-btn{width:100%;margin-top:16px;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s}
 .gate-btn:disabled{background:var(--bg4);color:var(--text4);cursor:default}
-.gate-btn:not(:disabled):hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(99,102,241,.3)}
-.gate-acct{margin-top:16px}
-.gate-acct label{font-size:12px;color:var(--text4);display:block;margin-bottom:6px}
-.gate-acct input{width:100%;padding:10px 14px;font-size:13px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;color:var(--text2);outline:none;font-family:var(--mono)}
 
-/* Header */
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px}
-.header-label{font-size:11px;letter-spacing:3px;color:var(--accent);font-weight:700;font-family:var(--mono)}
-.header-title{font-size:22px;font-weight:800;margin-top:4px}
-.header-actions{display:flex;gap:8px;flex-wrap:wrap}
-.btn-sm{padding:8px 16px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text3);font-size:12px;cursor:pointer;font-weight:600;transition:all .15s}
-.btn-sm:hover{background:var(--bg3);color:var(--text2);border-color:var(--accent)}
-.acct-switcher{display:flex;background:var(--bg3);border-radius:10px;border:1px solid var(--border);overflow:hidden;margin-right:auto}
-.acct-btn{padding:8px 18px;background:transparent;color:var(--text4);border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
-.acct-btn.active{background:var(--accent2);color:#fff}
-.acct-btn:not(.active):hover{color:var(--text3)}
+/* Nav */
+.nav{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.nav-back{padding:6px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text3);font-size:13px;cursor:pointer;font-weight:600;transition:all .15s}
+.nav-back:hover{border-color:var(--accent);color:var(--text2)}
+.nav-title{font-size:20px;font-weight:800;color:var(--text)}
+.nav-sub{font-size:12px;color:var(--text4);margin-left:auto;font-family:var(--mono)}
+.nav-actions{display:flex;gap:6px;margin-left:auto}
+.btn-sm{padding:7px 14px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text3);font-size:12px;cursor:pointer;font-weight:600}
+.btn-sm:hover{border-color:var(--accent);color:var(--text2)}
 
 /* Cards */
-.cards{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
-.card{background:linear-gradient(145deg,var(--bg3),#161622);border:1px solid var(--border);border-radius:12px;padding:20px 22px;flex:1;min-width:150px}
-.card-label{font-size:12px;color:var(--text4);letter-spacing:1px;font-weight:600;margin-bottom:8px;font-family:var(--mono)}
+.cards{display:grid;gap:12px;margin-bottom:20px}
+.cards-3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.cards-4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.card{background:linear-gradient(145deg,var(--bg3),#161622);border:1px solid var(--border);border-radius:12px;padding:20px 22px;transition:all .15s}
+.card-click{cursor:pointer}.card-click:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(99,102,241,.1)}
+.card-label{font-size:11px;color:var(--text4);letter-spacing:1px;font-weight:600;margin-bottom:8px;font-family:var(--mono)}
 .card-value{font-size:26px;font-weight:800}
 .card-sub{font-size:12px;color:var(--text4);margin-top:4px}
+.card-accent{border-color:var(--accent);background:linear-gradient(145deg,#0d0d20,#161628)}
+.card-brand{position:relative;overflow:hidden}
+.card-brand .card-label{font-size:13px;letter-spacing:0;color:var(--text2)}
+.card-arrow{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--accent3);font-size:18px;opacity:.4;transition:opacity .15s}
+.card-click:hover .card-arrow{opacity:1}
 
-/* Controls */
-.controls{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+/* Channel card */
+.ch-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:16px}
+.ch-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;transition:all .15s}
+.ch-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.ch-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ch-card-name{font-size:14px;font-weight:700}
+.ch-card-arrow{color:var(--accent3);font-size:14px;opacity:.4}
+.ch-card:hover .ch-card-arrow{opacity:1}
+.ch-card-metrics{display:flex;gap:20px}
+.ch-metric-label{font-size:11px;color:var(--text4);font-family:var(--mono)}
+.ch-metric-value{font-size:18px;font-weight:700;margin-top:2px}
+.ch-card-pending{opacity:.5;cursor:default;pointer-events:none}
+.ch-pending-badge{font-size:10px;color:var(--accent3);background:rgba(99,102,241,.1);padding:2px 8px;border-radius:4px}
+
+/* Date tabs */
+.controls{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
 .tab-group{display:flex;background:var(--bg3);border-radius:10px;border:1px solid var(--border);overflow:hidden}
-.tab-btn{padding:9px 16px;background:transparent;color:var(--text4);border:none;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.tab-btn{padding:8px 14px;background:transparent;color:var(--text4);border:none;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
 .tab-btn.active{background:var(--accent);color:#fff}
-.tab-btn:not(.active):hover{color:var(--text3)}
-
-/* Breadcrumb */
-.breadcrumb{display:flex;align-items:center;gap:6px;margin-bottom:16px;font-size:13px;flex-wrap:wrap}
-.bc-item{color:var(--accent3);cursor:pointer;padding:4px 10px;border-radius:6px;transition:all .15s;font-weight:600}
-.bc-item:hover{background:var(--bg4)}
-.bc-sep{color:var(--text4);font-size:11px}
-.bc-current{color:var(--text2);padding:4px 10px;font-weight:600}
 
 /* Table */
 .table-wrap{background:var(--bg2);border-radius:14px;border:1px solid var(--bg4);overflow-x:auto;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 table{width:100%;border-collapse:collapse;min-width:800px}
 th{padding:12px 14px;text-align:right;font-size:11px;letter-spacing:.5px;color:var(--text4);font-weight:700;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap;font-family:var(--mono)}
 th:first-child{text-align:left;min-width:200px}
-th:hover{color:var(--text3)}
 td{padding:12px 14px;text-align:right;font-size:13px;border-bottom:1px solid #111118;color:var(--text2);white-space:nowrap}
 td:first-child{text-align:left;font-weight:600;max-width:320px;overflow:hidden;text-overflow:ellipsis}
 tr:nth-child(even){background:#0b0b12}
-tr.paused{opacity:.45}
-.row-link{cursor:pointer;transition:background .15s}
-.row-link:hover{background:rgba(99,102,241,.08)!important}
-.row-name{display:flex;align-items:center;gap:8px}
-.drill-icon{color:var(--accent3);font-size:11px;opacity:.5;transition:opacity .15s}
-.row-link:hover .drill-icon{opacity:1}
+.row-link{cursor:pointer;transition:background .15s}.row-link:hover{background:rgba(99,102,241,.08)!important}
+.drill-icon{color:var(--accent3);font-size:11px;opacity:.5}.row-link:hover .drill-icon{opacity:1}
+.breadcrumb{display:flex;align-items:center;gap:6px;margin-bottom:12px;font-size:13px}
+.bc-item{color:var(--accent3);cursor:pointer;padding:4px 10px;border-radius:6px;font-weight:600}.bc-item:hover{background:var(--bg4)}
+.bc-sep{color:var(--text4);font-size:11px}
+.bc-current{color:var(--text2);padding:4px 10px;font-weight:600}
 
-/* Budget display in table */
+/* Budget */
 .budget-display{font-size:12px;color:var(--text3);font-family:var(--mono)}
-
-/* Action controls */
-.toggle-btn{padding:5px 14px;font-size:11px;font-weight:700;border-radius:6px;border:none;cursor:pointer;transition:all .15s;min-width:44px}
-.toggle-on{background:var(--green-bg);color:var(--green)}
-.toggle-off{background:var(--red-bg);color:var(--red)}
-.toggle-btn:hover{filter:brightness(1.3)}
-.budget-input{width:100px;padding:5px 8px;font-size:11px;background:#0a0a12;border:1px solid var(--border2);border-radius:6px;color:var(--text2);text-align:right;font-family:var(--mono);outline:none}
-.budget-input:focus{border-color:var(--accent)}
-.budget-apply{padding:5px 10px;font-size:11px;font-weight:700;border-radius:6px;border:none;cursor:pointer;background:#1a1a40;color:var(--accent3);transition:all .15s}
-.budget-apply:hover{background:#252560}
+.toggle-btn{padding:5px 14px;font-size:11px;font-weight:700;border-radius:6px;border:none;cursor:pointer;min-width:44px}
+.toggle-on{background:var(--green-bg);color:var(--green)}.toggle-off{background:var(--red-bg);color:var(--red)}
+.budget-input{width:80px;padding:5px 8px;font-size:11px;background:#0a0a12;border:1px solid var(--border2);border-radius:6px;color:var(--text2);text-align:right;font-family:var(--mono);outline:none}
+.budget-apply{padding:5px 10px;font-size:11px;font-weight:700;border-radius:6px;border:none;cursor:pointer;background:#1a1a40;color:var(--accent3)}
 
 /* Toast */
 .toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:opacity .3s}
-.toast-ok{background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green)}
-.toast-err{background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red)}
+.toast-ok{background:var(--green-bg);border:1px solid #1a4a2a;color:var(--green)}
+.toast-err{background:var(--red-bg);border:1px solid #3a1515;color:var(--red)}
 
-.loading{padding:60px;text-align:center;color:var(--text4)}
-.spinner{font-size:28px;margin-bottom:12px;animation:spin 1s linear infinite;display:inline-block}
+.loading{padding:40px;text-align:center;color:var(--text4)}
+.spinner{font-size:24px;animation:spin 1s linear infinite;display:inline-block}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-.error-box{padding:14px 18px;background:var(--red-bg);border:1px solid var(--red-bd);border-radius:10px;color:var(--red);margin-bottom:20px;font-size:13px}
+.error-box{padding:14px 18px;background:var(--red-bg);border:1px solid #3a1515;border-radius:10px;color:var(--red);margin-bottom:16px;font-size:13px}
 .footer{margin-top:16px;font-size:11px;color:#333;text-align:center}
-
-@media(max-width:768px){.cards{flex-direction:column}.card{min-width:unset}.card-value{font-size:22px}.header-title{font-size:18px}}
+@media(max-width:768px){.cards-3,.cards-4{grid-template-columns:1fr}.card-value{font-size:22px}.nav-title{font-size:17px}}
 </style>
 </head>
 <body>
 
+<!-- Gate -->
 <div id="gate" class="gate">
   <div class="gate-card">
-    <div class="gate-label">META PERFORMANCE AGENT</div>
-    <h1 class="gate-title">대시보드 연결</h1>
-    <p class="gate-desc">Meta 장기 액세스 토큰을 입력하세요.<br>토큰은 이 브라우저에 안전하게 저장됩니다.</p>
+    <div class="gate-label">FUNGUS DASHBOARD</div>
+    <h1 class="gate-title">펑거스 대시보드</h1>
+    <p class="gate-desc">Meta 장기 액세스 토큰을 입력하세요.<br>토큰은 브라우저에 안전하게 저장됩니다.</p>
     <input type="password" id="token-input" class="gate-input" placeholder="EAAX..." autocomplete="off">
-    <div class="gate-acct">
-      <label>광고 계정 ID (기본값: act_1517925575938989)</label>
-      <input id="acct-input" class="gate-input" placeholder="act_1517925575938989" style="font-size:13px;padding:10px 14px">
-    </div>
     <button id="connect-btn" class="gate-btn" disabled>연결하기</button>
   </div>
 </div>
 
-<div id="dashboard" class="container" style="display:none">
-  <div class="header">
-    <div>
-      <div class="header-label">META PERFORMANCE AGENT</div>
-      <h1 class="header-title" id="dash-title">광고 대시보드</h1>
-    </div>
-    <div class="header-actions">
-      <div class="acct-switcher" id="acct-switcher"></div>
-      <button class="btn-sm" onclick="refresh()">🔄 새로고침</button>
-      <button class="btn-sm" onclick="exportCSV()">📥 CSV</button>
-      <button class="btn-sm" onclick="disconnect()">연결 해제</button>
-    </div>
-  </div>
+<!-- Main App -->
+<div id="app" class="wrap" style="display:none">
+  <div id="nav" class="nav"></div>
   <div id="error-area"></div>
-  <div class="cards">
-    <div class="card"><div class="card-label">ROAS</div><div class="card-value" id="s-roas">—</div><div class="card-sub" id="s-rev"></div></div>
-    <div class="card"><div class="card-label">지출</div><div class="card-value" id="s-spend">—</div><div class="card-sub" id="s-imp"></div></div>
-    <div class="card"><div class="card-label">전환</div><div class="card-value" id="s-conv">—</div><div class="card-sub" id="s-ctr"></div></div>
-    <div class="card"><div class="card-label">LP→구매율</div><div class="card-value" id="s-lp">—</div><div class="card-sub" id="s-lpv"></div></div>
-  </div>
-  <div class="controls">
-    <div class="tab-group" id="view-tabs"></div>
-    <div class="tab-group" id="date-tabs"></div>
-  </div>
-  <div id="meta-section">
-    <div class="breadcrumb" id="breadcrumb"></div>
-    <div class="table-wrap">
-      <table><thead id="thead"></thead><tbody id="tbody"></tbody></table>
-    </div>
-  </div>
-  <div id="cafe24-section" style="display:none;background:#0d0d15;border-radius:14px;border:1px solid #1a1a28;padding:20px;margin-top:4px">
-    <div id="cafe24-content" style="text-align:center;color:#555;padding:20px">카페24 매출 탭을 선택하세요</div>
-  </div>
+  <div id="view-content"></div>
   <div class="footer" id="footer"></div>
 </div>
 
 <script>
-const API='https://graph.facebook.com/v21.0';
-const SK='meta-dash-v3';
-let TOKEN='', ACCT='act_1517925575938989';
-const C24='https://script.google.com/macros/s/AKfycbxIrVC0h2ZStiPmImzTGgrFJiJucXtns_IjDVGvAp9Z3lronMixenjySQXLflp-oY4_/exec';
+// ═══════ CONFIG ═══════
+const META_API='https://graph.facebook.com/v21.0';
+const C24_PROXY='https://script.google.com/macros/s/AKfycbxDmivcClIaiWoUcTCfTMBnQ7QM3O7fJLonJnbXKCwm1o02GdvUcqWyNPqYJL0vU3p0Aw/exec';
+const SK='fungus-dash-v1';
 
-// ── 광고 계정 목록 ──
-const ACCOUNTS=[
-  {id:'act_1517925575938989',label:'🐸 FROG',name:'프로그',c24:'frog'},
-  {id:'act_1326257743028917',label:'🧴 오리엔',name:'오리엔',c24:'orien'},
-];
-let acctIdx=0;
-
-// State
-let dateIdx=0, sortCol='spend', sortDir='desc';
-let navStack=[]; // [{level:'campaign'|'adset'|'ad', id:null|string, name:string}]
-let rows=[], statuses={}, editBudgets={};
-let accountCurrency='KRW', currencyOffset=1; // KRW=1, USD=100
+const BRANDS={
+  frog:{id:'frog',name:'프로그',icon:'🐸',acct:'act_1517925575938989',c24:'frog',channels:['meta','google']},
+  orien:{id:'orien',name:'오리엔',icon:'🧴',acct:'act_1326257743028917',c24:'orien',channels:['meta','google']},
+};
+const CHANNELS={meta:{name:'메타',icon:'📘',ready:true},google:{name:'구글',icon:'📊',ready:false}};
+const AGENCY_FEE={frog:146667,orien:154000}; // 일 고정 대행비
+const REVENUE_SHARE=0.10; // 10%
 
 const DATES=[
   {label:'오늘',fn:()=>{const t=kd(0);return[t,t]}},
@@ -193,396 +146,339 @@ const DATES=[
   {label:'최근 7일',fn:()=>[kd(6),kd(0)]},
   {label:'최근 14일',fn:()=>[kd(13),kd(0)]},
   {label:'최근 30일',fn:()=>[kd(29),kd(0)]},
+  {label:'최근 3개월',fn:()=>[kd(89),kd(0)]},
+  {label:'최대',fn:()=>['2024-01-01',kd(0)]},
 ];
 
-function kd(n){const d=new Date(Date.now()+9*3600000);d.setDate(d.getDate()-n);return d.toISOString().slice(0,10)}
+// ═══════ STATE ═══════
+let TOKEN='';
+let view='fungus'; // fungus | brand | channel
+let curBrand='frog';
+let curChannel='meta';
+let dateIdx=0;
+let sortCol='spend',sortDir='desc';
+let navStack=[];
+let rows=[],statuses={},editBudgets={};
+let currencyOffset=1;
+// Cache
+let cache={};
 
-// ── API ──
-async function mGet(path,p={}){
-  const u=new URL(`${API}/${path}`);u.searchParams.set('access_token',TOKEN);
+function kd(n){const d=new Date(Date.now()+9*3600000);d.setDate(d.getDate()-n);return d.toISOString().slice(0,10)}
+function rc(v){const n=parseFloat(v);if(isNaN(n))return'var(--text4)';if(n>=250)return'var(--green)';if(n>=200)return'var(--yellow2)';if(n>=180)return'var(--yellow)';return'var(--red)'}
+function toast(m,ok=true){const e=document.createElement('div');e.className='toast '+(ok?'toast-ok':'toast-err');e.textContent=m;document.body.appendChild(e);setTimeout(()=>{e.style.opacity='0';setTimeout(()=>e.remove(),300)},3000)}
+
+// ═══════ META API ═══════
+async function mGet(acct,path,p={}){
+  const u=new URL(META_API+'/'+path);u.searchParams.set('access_token',TOKEN);
   Object.entries(p).forEach(([k,v])=>u.searchParams.set(k,v));
-  const r=await fetch(u);const d=await r.json();
-  if(d.error)throw new Error(d.error.message);return d;
+  const r=await fetch(u.toString());return await r.json();
 }
 async function mPost(path,b={}){
-  const u=new URL(`${API}/${path}`);const fd=new URLSearchParams();
+  const u=new URL(META_API+'/'+path);const fd=new URLSearchParams();
   fd.set('access_token',TOKEN);Object.entries(b).forEach(([k,v])=>fd.set(k,String(v)));
-  const r=await fetch(u,{method:'POST',body:fd});const d=await r.json();
-  if(d.error)throw new Error(d.error.message);return d;
+  const r=await fetch(u.toString(),{method:'POST',body:fd});return await r.json();
 }
 
-async function detectCurrency(){
-  try{
-    const d=await mGet(ACCT,{fields:'currency'});
-    accountCurrency=d.currency||'KRW';
-    // Currencies with 0 decimal places (offset=1 in Meta)
-    const zeroDec=['KRW','JPY','VND','CLP','ISK','PYG','UGX','BIF','DJF','GNF','KMF','RWF','XOF','XAF','XPF'];
-    currencyOffset=zeroDec.includes(accountCurrency)?1:100;
-  }catch(e){currencyOffset=1;} // default KRW
+// ═══════ CAFE24 API ═══════
+async function c24Get(store,action,start,end){
+  const url=C24_PROXY+'?store='+store+'&action='+action+'&start='+start+'&end='+end;
+  const r=await fetch(url);return await r.json();
 }
 
-function budgetFromApi(v){return v?parseInt(v)/currencyOffset:null}
-function budgetToApi(v){return Math.round(v*currencyOffset)}
-
-// ── Parse ──
-function parseRow(r){
+// ═══════ DATA FETCHING ═══════
+async function fetchMetaInsights(acctId,level,since,until){
+  const fields='campaign_id,campaign_name,adset_id,adset_name,ad_id,ad_name,spend,impressions,clicks,ctr,actions,action_values';
+  const d=await mGet(acctId,acctId+'/insights',{fields,level,time_range:JSON.stringify({since,until}),limit:'500'});
+  return(d.data||[]).map(parseMetaRow);
+}
+function parseMetaRow(r){
   const spend=parseFloat(r.spend||0),imps=parseInt(r.impressions||0),clicks=parseInt(r.clicks||0),ctr=parseFloat(r.ctr||0);
   let purch=0,rev=0,lp=0;
-  (r.actions||[]).forEach(a=>{
-    if(['offsite_conversion.fb_pixel_purchase','purchase'].includes(a.action_type))purch=parseInt(a.value||0);
-    if(a.action_type==='landing_page_view')lp=parseInt(a.value||0);
-  });
-  (r.action_values||[]).forEach(a=>{
-    if(['offsite_conversion.fb_pixel_purchase','purchase'].includes(a.action_type))rev=parseFloat(a.value||0);
-  });
-  return{
-    campaign_id:r.campaign_id||'',campaign_name:r.campaign_name||'',
-    adset_id:r.adset_id||'',adset_name:r.adset_name||'',
-    ad_id:r.ad_id||'',ad_name:r.ad_name||'',
-    spend,imps,clicks,ctr:ctr.toFixed(2),
-    purch,rev,
-    roas:spend>0?(rev/spend*100).toFixed(1):'—',
-    lp,lpCvr:lp>0?(purch/lp*100).toFixed(2):'—',
-  };
+  (r.actions||[]).forEach(a=>{if(['offsite_conversion.fb_pixel_purchase','purchase'].includes(a.action_type))purch=parseInt(a.value||0);if(a.action_type==='landing_page_view')lp=parseInt(a.value||0)});
+  (r.action_values||[]).forEach(a=>{if(['offsite_conversion.fb_pixel_purchase','purchase'].includes(a.action_type))rev=parseFloat(a.value||0)});
+  return{campaign_id:r.campaign_id||'',campaign_name:r.campaign_name||'',adset_id:r.adset_id||'',adset_name:r.adset_name||'',ad_id:r.ad_id||'',ad_name:r.ad_name||'',spend,imps,clicks,ctr:ctr.toFixed(2),purch,rev,roas:spend>0?(rev/spend*100).toFixed(1):'—',lp,lpCvr:lp>0?(purch/lp*100).toFixed(2):'—'};
 }
 
-function rc(v){const n=parseFloat(v);if(isNaN(n))return'var(--text4)';if(n>=250)return'var(--green)';if(n>=200)return'var(--yellow2)';if(n>=180)return'var(--yellow)';return'var(--red)'}
-
-function toast(m,ok=true){
-  const e=document.createElement('div');e.className=`toast ${ok?'toast-ok':'toast-err'}`;e.textContent=m;
-  document.body.appendChild(e);setTimeout(()=>{e.style.opacity='0';setTimeout(()=>e.remove(),300)},3000);
-}
-
-// ── Navigation ──
-function currentLevel(){return navStack.length===0?'campaign':navStack.length===1?'adset':'ad'}
-function currentParent(){return navStack.length>0?navStack[navStack.length-1]:null}
-
-function navigateTo(level,id,name){
-  if(level==='adset')navStack=[{level:'campaign',id,name}];
-  else if(level==='ad')navStack.length===1?navStack.push({level:'adset',id,name}):navStack=[navStack[0],{level:'adset',id,name}];
-  fetchData();
-}
-function navBack(idx){
-  navStack=navStack.slice(0,idx);
-  fetchData();
-}
-
-function renderBreadcrumb(){
-  const bc=document.getElementById('breadcrumb');
-  let html='<span class="bc-item" onclick="navBack(0)">전체 캠페인</span>';
-  navStack.forEach((n,i)=>{
-    html+=`<span class="bc-sep">›</span>`;
-    if(i<navStack.length-1)html+=`<span class="bc-item" onclick="navBack(${i+1})">${n.name}</span>`;
-    else html+=`<span class="bc-current">${n.name}</span>`;
-  });
-  bc.innerHTML=html;
-}
-
-// ── Fetch ──
-async function fetchData(){
-  const tbody=document.getElementById('tbody');
-  const errArea=document.getElementById('error-area');
-  errArea.innerHTML='';
-  tbody.innerHTML='<tr><td colspan="8" class="loading"><div class="spinner">⏳</div><div>데이터 수집 중...</div></td></tr>';
-  renderBreadcrumb();
-
-  const level=currentLevel();
-  const parent=currentParent();
-
+async function fetchBrandSummary(brandKey,since,until){
+  const brand=BRANDS[brandKey];
+  const results={cafe24:{revenue:0,orders:0,cancelled:0,aov:0},channels:{}};
+  // Cafe24
   try{
-    const[since,until]=DATES[dateIdx].fn();
-    const fields='campaign_id,campaign_name,adset_id,adset_name,ad_id,ad_name,spend,impressions,clicks,ctr,actions,action_values';
-    const params={fields,level,time_range:JSON.stringify({since,until}),limit:'500'};
+    const c=await c24Get(brand.c24,'summary',since,until);
+    if(c.success)results.cafe24=c.data;
+  }catch(e){}
+  // Meta
+  try{
+    const m=await fetchMetaInsights(brand.acct,'campaign',since,until);
+    const totalSpend=m.reduce((a,r)=>a+r.spend,0);
+    const totalRev=m.reduce((a,r)=>a+r.rev,0);
+    results.channels.meta={spend:totalSpend,revenue:totalRev,roas:totalSpend>0?(totalRev/totalSpend*100).toFixed(1):'—'};
+  }catch(e){results.channels.meta={spend:0,revenue:0,roas:'—',error:e.message}}
+  // Google (placeholder)
+  results.channels.google={spend:0,revenue:0,roas:'—',pending:true};
+  // Total ad spend
+  results.totalAdSpend=Object.values(results.channels).reduce((a,c)=>a+(c.spend||0),0);
+  results.trueRoas=results.totalAdSpend>0?((results.cafe24.total_revenue||0)/results.totalAdSpend*100).toFixed(1):'—';
+  return results;
+}
 
-    // If drilling down, filter by parent
-    let endpoint=`${ACCT}/insights`;
-    if(level==='adset'&&parent){
-      params.filtering=JSON.stringify([{field:'campaign.id',operator:'EQUAL',value:parent.id}]);
-    }else if(level==='ad'&&parent){
-      params.filtering=JSON.stringify([{field:'adset.id',operator:'EQUAL',value:parent.id}]);
-    }
+// ═══════ NAVIGATION ═══════
+function navigate(newView,brand,channel){
+  view=newView;
+  if(brand)curBrand=brand;
+  if(channel)curChannel=channel;
+  dateIdx=0;navStack=[];sortCol='spend';sortDir='desc';rows=[];statuses={};editBudgets={};
+  render();
+}
 
-    const data=await mGet(endpoint,params);
-    rows=(data.data||[]).map(parseRow);
+function renderNav(){
+  const nav=document.getElementById('nav');
+  let html='';
+  if(view==='fungus'){
+    html=`<span class="nav-title">🍄 펑거스 대시보드</span><div class="nav-actions"><button class="btn-sm" onclick="render()">🔄 새로고침</button><button class="btn-sm" onclick="disconnect()">연결 해제</button></div>`;
+  }else if(view==='brand'){
+    const b=BRANDS[curBrand];
+    html=`<button class="nav-back" onclick="navigate('fungus')">← 펑거스</button><span class="nav-title">${b.icon} ${b.name} 대시보드</span><div class="nav-actions"><button class="btn-sm" onclick="render()">🔄</button><button class="btn-sm" onclick="disconnect()">연결 해제</button></div>`;
+  }else if(view==='channel'){
+    const b=BRANDS[curBrand];const ch=CHANNELS[curChannel];
+    html=`<button class="nav-back" onclick="navigate('brand','${curBrand}')">← ${b.name}</button><span class="nav-title">${b.icon} ${b.name} — ${ch.icon} ${ch.name}</span><div class="nav-actions"><button class="btn-sm" onclick="render()">🔄</button><button class="btn-sm" onclick="exportCSV()">📥 CSV</button><button class="btn-sm" onclick="disconnect()">연결 해제</button></div>`;
+  }
+  nav.innerHTML=html;
+}
 
-    // Fetch statuses + budgets
-    statuses={};editBudgets={};
-    if(level==='ad'||level==='adset'){
-      const objType=level==='ad'?'ads':'adsets';
-      let stParams={fields:'id,name,status,daily_budget',limit:'500'};
-      
-      // Filter to relevant parent
-      if(level==='adset'&&parent){
-        const stData=await mGet(`${parent.id}/adsets`,{fields:'id,name,status,daily_budget',limit:'500'});
-        (stData.data||[]).forEach(it=>{statuses[it.id]={status:it.status,daily_budget:budgetFromApi(it.daily_budget)}});
-      }else if(level==='ad'&&parent){
-        const stData=await mGet(`${parent.id}/ads`,{fields:'id,name,status',limit:'500'});
-        (stData.data||[]).forEach(it=>{statuses[it.id]={status:it.status,daily_budget:null}});
-      }else{
-        const stData=await mGet(`${ACCT}/${objType}`,stParams);
-        (stData.data||[]).forEach(it=>{statuses[it.id]={status:it.status,daily_budget:budgetFromApi(it.daily_budget)}});
-      }
-    }
-    // For campaigns, fetch their budgets too
-    if(level==='campaign'){
-      const cData=await mGet(`${ACCT}/campaigns`,{fields:'id,name,status,daily_budget,lifetime_budget',limit:'200'});
-      (cData.data||[]).forEach(it=>{statuses[it.id]={status:it.status,daily_budget:budgetFromApi(it.daily_budget)}});
-    }
-
-    renderSummary();
-    renderTable();
+// ═══════ RENDER ═══════
+async function render(){
+  renderNav();
+  const el=document.getElementById('view-content');
+  el.innerHTML='<div class="loading"><span class="spinner">⏳</span><div style="margin-top:8px">데이터 로딩 중...</div></div>';
+  document.getElementById('error-area').innerHTML='';
+  try{
+    if(view==='fungus')await renderFungus(el);
+    else if(view==='brand')await renderBrand(el);
+    else if(view==='channel')await renderChannel(el);
   }catch(e){
-    errArea.innerHTML=`<div class="error-box">⚠️ ${e.message}</div>`;
-    tbody.innerHTML='';
+    document.getElementById('error-area').innerHTML='<div class="error-box">⚠️ '+e.message+'</div>';
+    el.innerHTML='';
   }
 }
 
-function renderSummary(){
-  const t=rows.reduce((a,r)=>({spend:a.spend+r.spend,purch:a.purch+r.purch,rev:a.rev+r.rev,lp:a.lp+r.lp,clicks:a.clicks+r.clicks,imps:a.imps+r.imps}),{spend:0,purch:0,rev:0,lp:0,clicks:0,imps:0});
-  const roas=t.spend>0?(t.rev/t.spend*100).toFixed(1):'—';
-  const ctr=t.imps>0?(t.clicks/t.imps*100).toFixed(2):'—';
-  const lpCvr=t.lp>0?(t.purch/t.lp*100).toFixed(2):'—';
+// ═══════ LAYER 1: FUNGUS ═══════
+async function renderFungus(el){
+  const today=kd(0);
+  const [frogData,orienData]=await Promise.all([
+    fetchBrandSummary('frog',today,today),
+    fetchBrandSummary('orien',today,today),
+  ]);
+  const totalGMV=(frogData.cafe24.total_revenue||0)+(orienData.cafe24.total_revenue||0);
+  const totalAdSpend=(frogData.totalAdSpend||0)+(orienData.totalAdSpend||0);
+  const dailyAgencyFee=AGENCY_FEE.frog+AGENCY_FEE.orien;
+  const fungusRevenue=dailyAgencyFee+Math.round(totalGMV*REVENUE_SHARE);
+  const now=new Date(Date.now()+9*3600000);
+  const updated=now.toLocaleString('ko-KR',{timeZone:'Asia/Seoul'});
 
-  document.getElementById('s-roas').textContent=`${roas}%`;
-  document.getElementById('s-roas').style.color=rc(roas);
-  document.getElementById('s-rev').textContent=`매출 ${t.rev.toLocaleString()}원`;
-  document.getElementById('s-spend').textContent=`${t.spend.toLocaleString()}원`;
-  document.getElementById('s-imp').textContent=`노출 ${t.imps.toLocaleString()}회`;
-  document.getElementById('s-conv').textContent=`${t.purch}건`;
-  document.getElementById('s-ctr').textContent=`CTR ${ctr}%`;
-  document.getElementById('s-lp').textContent=`${lpCvr}%`;
-  document.getElementById('s-lpv').textContent=`LP조회 ${t.lp.toLocaleString()}회`;
-  document.getElementById('footer').textContent=`${DATES[dateIdx].label} · ${currentLevel()} · ${rows.length}개 항목 · ${kd(0)}`;
+  const brandCard=(key,data)=>{
+    const b=BRANDS[key];
+    const rev=(data.cafe24.total_revenue||0).toLocaleString();
+    const roas=data.trueRoas;
+    return`<div class="card card-brand card-click" onclick="navigate('brand','${key}')">
+      <div class="card-label">${b.icon} ${b.name}</div>
+      <div style="display:flex;gap:24px;margin-top:8px">
+        <div><div style="font-size:11px;color:var(--text4);font-family:var(--mono)">매출</div><div style="font-size:20px;font-weight:800">${rev}원</div></div>
+        <div><div style="font-size:11px;color:var(--text4);font-family:var(--mono)">ROAS</div><div style="font-size:20px;font-weight:800;color:${rc(roas)}">${roas}%</div></div>
+      </div>
+      <span class="card-arrow">▸</span>
+    </div>`;
+  };
+
+  el.innerHTML=`
+    <div style="font-size:12px;color:var(--text4);margin-bottom:16px;font-family:var(--mono)">Updated: ${updated}</div>
+    <div class="cards cards-3">
+      <div class="card"><div class="card-label">오늘 총거래액 (GMV)</div><div class="card-value">${totalGMV.toLocaleString()}원</div><div class="card-sub">전체 브랜드 카페24 매출 합산</div></div>
+      <div class="card"><div class="card-label">오늘 총 광고비</div><div class="card-value">${totalAdSpend.toLocaleString()}원</div><div class="card-sub">메타${totalAdSpend>0?' + 구글(연동 예정)':''}</div></div>
+      <div class="card card-accent"><div class="card-label">펑거스 매출</div><div class="card-value">${fungusRevenue.toLocaleString()}원</div><div class="card-sub">대행비 ${dailyAgencyFee.toLocaleString()}원 + GMV 10%</div></div>
+    </div>
+    <div style="font-size:13px;font-weight:600;color:var(--text3);margin:20px 0 12px">브랜드별 현황</div>
+    <div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+      ${brandCard('frog',frogData)}
+      ${brandCard('orien',orienData)}
+    </div>`;
 }
 
-function renderTable(){
-  const level=currentLevel();
-  const canDrill=level!=='ad';
+// ═══════ LAYER 2: BRAND ═══════
+async function renderBrand(el){
+  const brand=BRANDS[curBrand];
+  const[since,until]=DATES[dateIdx].fn();
+  const data=await fetchBrandSummary(curBrand,since,until);
 
-  const _getBudget=(r)=>{
-    const oid=level==='ad'?r.ad_id:level==='adset'?r.adset_id:r.campaign_id;
-    return statuses[oid]?.daily_budget||0;
+  const cafe=data.cafe24;
+  const roas=data.trueRoas;
+  const aov=cafe.avg_order_value||0;
+
+  const dateTabs=DATES.map((d,i)=>`<button class="tab-btn${i===dateIdx?' active':''}" onclick="dateIdx=${i};render()">${d.label}</button>`).join('');
+
+  const chCard=(chKey)=>{
+    const ch=CHANNELS[chKey];const d=data.channels[chKey]||{};
+    if(d.pending)return`<div class="ch-card ch-card-pending"><div class="ch-card-head"><span class="ch-card-name">${ch.icon} ${ch.name}</span><span class="ch-pending-badge">연동 예정</span></div><div class="ch-card-metrics"><div><div class="ch-metric-label">지출</div><div class="ch-metric-value" style="color:var(--text4)">—</div></div><div><div class="ch-metric-label">ROAS</div><div class="ch-metric-value" style="color:var(--text4)">—</div></div></div></div>`;
+    return`<div class="ch-card" onclick="navigate('channel','${curBrand}','${chKey}')"><div class="ch-card-head"><span class="ch-card-name">${ch.icon} ${ch.name}</span><span class="ch-card-arrow">▸</span></div><div class="ch-card-metrics"><div><div class="ch-metric-label">지출</div><div class="ch-metric-value">${(d.spend||0).toLocaleString()}원</div></div><div><div class="ch-metric-label">채널 ROAS</div><div class="ch-metric-value" style="color:${rc(d.roas)}">${d.roas||'—'}%</div></div></div></div>`;
   };
-  const sorted=[...rows].sort((a,b)=>{
-    let av=sortCol==='budget'?_getBudget(a):a[sortCol];
-    let bv=sortCol==='budget'?_getBudget(b):b[sortCol];
-    if(typeof av==='string'&&!isNaN(parseFloat(av))){av=parseFloat(av);bv=parseFloat(bv)}
-    if(av==='—')av=-1;if(bv==='—')bv=-1;
-    return sortDir==='desc'?(bv>av?1:-1):(av>bv?1:-1);
+
+  el.innerHTML=`
+    <div class="controls"><div class="tab-group">${dateTabs}</div></div>
+    <div class="cards cards-4">
+      <div class="card"><div class="card-label">카페24 매출</div><div class="card-value">${(cafe.total_revenue||0).toLocaleString()}원</div><div class="card-sub">유효 주문 ${cafe.paid_orders||0}건</div></div>
+      <div class="card card-accent"><div class="card-label">전체 ROAS</div><div class="card-value" style="color:${rc(roas)}">${roas}%</div><div class="card-sub">카페24 매출 ÷ 전체 광고비</div></div>
+      <div class="card"><div class="card-label">주문 건수</div><div class="card-value">${cafe.total_orders||0}건</div><div class="card-sub">취소/반품 ${cafe.cancelled_orders||0}건</div></div>
+      <div class="card"><div class="card-label">객단가</div><div class="card-value">${aov.toLocaleString()}원</div></div>
+    </div>
+    <div style="font-size:13px;font-weight:600;color:var(--text3);margin:20px 0 12px">광고 채널별</div>
+    <div class="ch-cards">${brand.channels.map(chCard).join('')}</div>`;
+}
+
+// ═══════ LAYER 3: CHANNEL ═══════
+async function renderChannel(el){
+  const brand=BRANDS[curBrand];const ch=CHANNELS[curChannel];
+  if(!ch.ready){el.innerHTML='<div class="loading">📊 '+ch.name+' 연동 예정</div>';return}
+  const[since,until]=DATES[dateIdx].fn();
+  const level=navStack.length===0?'campaign':navStack.length===1?'adset':'ad';
+  const parent=navStack.length>0?navStack[navStack.length-1]:null;
+
+  // Fetch insights
+  const fields='campaign_id,campaign_name,adset_id,adset_name,ad_id,ad_name,spend,impressions,clicks,ctr,actions,action_values';
+  const params={fields,level,time_range:JSON.stringify({since,until}),limit:'500'};
+  if(level==='adset'&&parent)params.filtering=JSON.stringify([{field:'campaign.id',operator:'EQUAL',value:parent.id}]);
+  if(level==='ad'&&parent)params.filtering=JSON.stringify([{field:'adset.id',operator:'EQUAL',value:parent.id}]);
+  const insightData=await mGet(brand.acct,brand.acct+'/insights',params);
+  rows=(insightData.data||[]).map(parseMetaRow);
+
+  // Fetch statuses + budgets
+  statuses={};editBudgets={};
+  if(level==='campaign'){
+    const d=await mGet(brand.acct,brand.acct+'/campaigns',{fields:'id,name,status,daily_budget,updated_time',limit:'200'});
+    (d.data||[]).forEach(it=>{statuses[it.id]={status:it.status,daily_budget:it.daily_budget?parseInt(it.daily_budget)/currencyOffset:null,updated_time:it.updated_time||''}});
+  }else if(level==='adset'){
+    const endpoint=parent?parent.id+'/adsets':brand.acct+'/adsets';
+    const d=await mGet(brand.acct,endpoint,{fields:'id,name,status,daily_budget,updated_time',limit:'500'});
+    (d.data||[]).forEach(it=>{statuses[it.id]={status:it.status,daily_budget:it.daily_budget?parseInt(it.daily_budget)/currencyOffset:null,updated_time:it.updated_time||''}});
+  }else if(level==='ad'){
+    const endpoint=parent?parent.id+'/ads':brand.acct+'/ads';
+    const d=await mGet(brand.acct,endpoint,{fields:'id,name,status,updated_time',limit:'500'});
+    (d.data||[]).forEach(it=>{statuses[it.id]={status:it.status,daily_budget:null,updated_time:it.updated_time||''}});
+  }
+  // Find latest modification time
+  var lastMod='';
+  Object.values(statuses).forEach(s=>{if(s.updated_time&&s.updated_time>lastMod)lastMod=s.updated_time});
+  var lastModStr=lastMod?new Date(lastMod).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}):'—';
+
+  // Summary
+  const t=rows.reduce((a,r)=>({spend:a.spend+r.spend,purch:a.purch+r.purch,rev:a.rev+r.rev,lp:a.lp+r.lp,clicks:a.clicks+r.clicks,imps:a.imps+r.imps}),{spend:0,purch:0,rev:0,lp:0,clicks:0,imps:0});
+  const roas=t.spend>0?(t.rev/t.spend*100).toFixed(1):'—';
+  const ctrVal=t.imps>0?(t.clicks/t.imps*100).toFixed(2):'—';
+  const lpCvr=t.lp>0?(t.purch/t.lp*100).toFixed(2):'—';
+
+  const dateTabs=DATES.map((d,i)=>`<button class="tab-btn${i===dateIdx?' active':''}" onclick="dateIdx=${i};navStack=[];render()">${d.label}</button>`).join('');
+
+  // Breadcrumb
+  let bcHtml='<span class="bc-item" onclick="navStack=[];render()">전체 캠페인</span>';
+  navStack.forEach((n,i)=>{
+    bcHtml+='<span class="bc-sep">›</span>';
+    if(i<navStack.length-1)bcHtml+=`<span class="bc-item" onclick="navStack=navStack.slice(0,${i});render()">${n.name}</span>`;
+    else bcHtml+=`<span class="bc-current">${n.name}</span>`;
   });
 
+  // Table
+  const canDrill=level!=='ad';
+  const getBudget=(r)=>{const oid=level==='ad'?r.ad_id:level==='adset'?r.adset_id:r.campaign_id;return statuses[oid]?.daily_budget||0};
+  const sorted=[...rows].sort((a,b)=>{let av=sortCol==='budget'?getBudget(a):a[sortCol],bv=sortCol==='budget'?getBudget(b):b[sortCol];if(typeof av==='string'&&!isNaN(parseFloat(av))){av=parseFloat(av);bv=parseFloat(bv)}if(av==='—')av=-1;if(bv==='—')bv=-1;return sortDir==='desc'?(bv>av?1:-1):(av>bv?1:-1)});
   const si=c=>sortCol===c?(sortDir==='desc'?' ↓':' ↑'):'';
 
-  // Columns
   let cols='<th onclick="ds(\'name\')" style="text-align:left">이름'+si('name')+'</th>';
-  if(level!=='ad')cols+='<th onclick="ds(\'budget\')" style="text-align:right">일 예산'+si('budget')+'</th>';
-  cols+=`<th onclick="ds('spend')">지출${si('spend')}</th>`;
-  cols+=`<th onclick="ds('ctr')">CTR${si('ctr')}</th>`;
-  cols+=`<th onclick="ds('purch')">결과${si('purch')}</th>`;
-  cols+=`<th onclick="ds('rev')">결과값${si('rev')}</th>`;
-  cols+=`<th onclick="ds('roas')">ROAS${si('roas')}</th>`;
-  cols+=`<th onclick="ds('lpCvr')">LP→구매${si('lpCvr')}</th>`;
+  if(level!=='ad')cols+='<th onclick="ds(\'budget\')">일 예산'+si('budget')+'</th>';
+  cols+=`<th onclick="ds('spend')">지출${si('spend')}</th><th onclick="ds('ctr')">CTR${si('ctr')}</th><th onclick="ds('purch')">결과${si('purch')}</th><th onclick="ds('rev')">결과값${si('rev')}</th><th onclick="ds('roas')">ROAS${si('roas')}</th><th onclick="ds('lpCvr')">LP→구매${si('lpCvr')}</th>`;
   if(level==='ad')cols+='<th style="text-align:center">ON/OFF</th>';
   if(level==='adset'||level==='campaign')cols+='<th style="text-align:center">예산 변경</th>';
 
-  document.getElementById('thead').innerHTML='<tr>'+cols+'</tr>';
-
-  const tbody=document.getElementById('tbody');
-  if(!sorted.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--text4);padding:40px">데이터 없음</td></tr>';return}
-
-  tbody.innerHTML=sorted.map((r,i)=>{
+  let tbody='';
+  if(!sorted.length)tbody='<tr><td colspan="9" style="text-align:center;color:var(--text4);padding:40px">데이터 없음</td></tr>';
+  sorted.forEach(r=>{
     const objId=level==='ad'?r.ad_id:level==='adset'?r.adset_id:r.campaign_id;
     const name=level==='ad'?r.ad_name:level==='adset'?r.adset_name:r.campaign_name;
-    const st=statuses[objId];
-    const isActive=st?.status==='ACTIVE';
-    const paused=st&&!isActive?' paused':'';
+    const st=statuses[objId];const isActive=st?.status==='ACTIVE';const paused=st&&!isActive?' style="opacity:.45"':'';
     const budget=st?.daily_budget;
-
-    // Name cell with drill-down
-    let nameCell;
-    if(canDrill){
-      const nextLevel=level==='campaign'?'adset':'ad';
-      nameCell=`<td><div class="row-name"><span>${name}</span><span class="drill-icon">▸</span></div></td>`;
-    }else{
-      nameCell=`<td>${name}</td>`;
-    }
-
-    // Budget column for campaigns and adsets
+    let nameCell=canDrill?`<td><div style="display:flex;align-items:center;gap:8px"><span>${name}</span><span class="drill-icon">▸</span></div></td>`:`<td>${name}</td>`;
     let budgetCell='';
-    if(level!=='ad'){
-      budgetCell=`<td class="budget-display">${budget!==null&&budget!==undefined?budget.toLocaleString()+'원':'—'}</td>`;
-    }
-
-    // Action column
+    if(level!=='ad')budgetCell=`<td class="budget-display">${budget!=null?budget.toLocaleString()+'원':'—'}</td>`;
     let actionCell='';
-    if(level==='ad'&&st){
-      actionCell=`<td style="text-align:center"><button class="toggle-btn ${isActive?'toggle-on':'toggle-off'}" onclick="event.stopPropagation();toggleStatus('${objId}','${st.status}')">${isActive?'ON':'OFF'}</button></td>`;
-    }
-    if(level==='adset'||level==='campaign'){
-      if(budget!==null&&budget!==undefined){
-        const evMan=editBudgets[objId]!==undefined?editBudgets[objId]:Math.round(budget/10000);
-        const changed=editBudgets[objId]!==undefined&&editBudgets[objId]!==Math.round(budget/10000);
-        actionCell=`<td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center;align-items:center"><input class="budget-input" type="number" step="0.5" value="${evMan}" onclick="event.stopPropagation()" onchange="event.stopPropagation();sbe('${objId}',this.value)" onfocus="this.select()"><span style="font-size:11px;color:#555">만원</span>${changed?`<button class="budget-apply" onclick="event.stopPropagation();ab('${objId}',${editBudgets[objId]},'${level}')">적용</button>`:''}</div></td>`;
-      }else{actionCell='<td style="text-align:center"><span class="budget-display">—</span></td>'}
-    }
+    if(level==='ad'&&st)actionCell=`<td style="text-align:center"><button class="toggle-btn ${isActive?'toggle-on':'toggle-off'}" onclick="event.stopPropagation();toggleAd('${objId}','${st.status}')">${isActive?'ON':'OFF'}</button></td>`;
+    if((level==='adset'||level==='campaign')&&budget!=null){
+      const evMan=editBudgets[objId]!=null?editBudgets[objId]:Math.round(budget/10000);
+      actionCell=`<td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center;align-items:center"><input class="budget-input" type="number" step="0.5" value="${evMan}" onclick="event.stopPropagation()" onchange="event.stopPropagation();budgetEdit('${objId}',this.value,${Math.round(budget/10000)})" onfocus="this.select()"><span style="font-size:11px;color:#555">만원</span><button id="abtn-${objId}" class="budget-apply" style="display:none" onclick="event.stopPropagation();applyBudget('${objId}',editBudgets['${objId}'],'${level}')">적용</button></div></td>`;
+    }else if((level==='adset'||level==='campaign')&&budget==null)actionCell='<td style="text-align:center"><span class="budget-display">—</span></td>';
+    const rowClick=canDrill?` class="row-link" onclick="drillDown('${level}','${objId}','${name.replace(/'/g,"\\'")}')"`:paused?` ${paused}`:'';
+    tbody+=`<tr${rowClick}>${nameCell}${budgetCell}<td>${r.spend.toLocaleString()}</td><td>${r.ctr}%</td><td style="font-weight:700;color:${r.purch>0?'var(--purple)':'var(--text4)'}">${r.purch}</td><td>${r.rev.toLocaleString()}</td><td style="font-weight:700;color:${rc(r.roas)}">${r.roas}%</td><td>${r.lpCvr}%</td>${actionCell}</tr>`;
+  });
 
-    const rowClass=canDrill?`class="row-link${paused}" onclick="drillDown('${level}','${objId}','${name.replace(/'/g,"\\'")}')"`:paused?`class="${paused.trim()}"`:'';
-
-    return`<tr ${rowClass} title="${name}">${nameCell}${budgetCell}<td>${r.spend.toLocaleString()}</td><td>${r.ctr}%</td><td style="font-weight:700;color:${r.purch>0?'var(--purple)':'var(--text4)'}">${r.purch}</td><td>${r.rev.toLocaleString()}</td><td style="font-weight:700;color:${rc(r.roas)}">${r.roas}%</td><td>${r.lpCvr}%</td>${actionCell}</tr>`;
-  }).join('');
+  el.innerHTML=`
+    <div style="font-size:12px;color:var(--text4);margin-bottom:12px;font-family:var(--mono)">✏️ 마지막 수정: ${lastModStr}</div>
+    <div class="cards cards-4">
+      <div class="card"><div class="card-label">${ch.name} 매출</div><div class="card-value">${t.rev.toLocaleString()}원</div><div class="card-sub">지출 ${t.spend.toLocaleString()}원</div></div>
+      <div class="card card-accent"><div class="card-label">${ch.name} ROAS</div><div class="card-value" style="color:${rc(roas)}">${roas}%</div></div>
+      <div class="card"><div class="card-label">전환</div><div class="card-value">${t.purch}건</div><div class="card-sub">CTR ${ctrVal}%</div></div>
+      <div class="card"><div class="card-label">LP→구매율</div><div class="card-value">${lpCvr}%</div><div class="card-sub">LP조회 ${t.lp.toLocaleString()}회</div></div>
+    </div>
+    <div class="controls"><div class="tab-group">${dateTabs}</div></div>
+    <div class="breadcrumb">${bcHtml}</div>
+    <div class="table-wrap"><table><thead><tr>${cols}</tr></thead><tbody>${tbody}</tbody></table></div>
+    <div class="footer">${DATES[dateIdx].label} · ${level} · ${rows.length}개 · ${kd(0)}</div>`;
 }
 
-// Sort, drill, actions
-function ds(c){if(sortCol===c)sortDir=sortDir==='desc'?'asc':'desc';else{sortCol=c;sortDir='desc'}renderTable()}
-function drillDown(fromLevel,id,name){
-  const nextLevel=fromLevel==='campaign'?'adset':'ad';
-  navigateTo(nextLevel,id,name);
+// ═══════ CHANNEL ACTIONS ═══════
+function ds(c){if(sortCol===c)sortDir=sortDir==='desc'?'asc':'desc';else{sortCol=c;sortDir='desc'}render()}
+function drillDown(fromLevel,id,name){navStack.push({level:fromLevel,id,name});render()}
+function budgetEdit(objId,value,origMan){
+  var v=parseFloat(value)||0;
+  editBudgets[objId]=v;
+  var btn=document.getElementById('abtn-'+objId);
+  if(btn)btn.style.display=v!==origMan?'inline-block':'none';
 }
-async function toggleStatus(id,cur){
+async function toggleAd(id,cur){
   const ns=cur==='ACTIVE'?'PAUSED':'ACTIVE';
-  try{await mPost(id,{status:ns});statuses[id]={...statuses[id],status:ns};toast(`✅ ${ns==='ACTIVE'?'ON':'OFF'} 완료`);renderTable()}catch(e){toast(`❌ ${e.message}`,false)}
+  try{const d=await mPost(id,{status:ns});if(d.error)throw new Error(d.error.message);statuses[id]={...statuses[id],status:ns};toast('✅ '+(ns==='ACTIVE'?'ON':'OFF')+' 완료');render()}catch(e){toast('❌ '+e.message,false)}
 }
-function sbe(id,v){editBudgets[id]=parseFloat(v)||0;renderTable()}
-async function ab(id,vMan,level){
+async function applyBudget(id,vMan,level){
   const vWon=Math.round(vMan*10000);
-  try{await mPost(id,{daily_budget:budgetToApi(vWon)});statuses[id]={...statuses[id],daily_budget:vWon};delete editBudgets[id];toast(`✅ 예산 변경: ${vMan}만원 (${vWon.toLocaleString()}원)`);renderTable()}catch(e){toast(`❌ ${e.message}`,false)}
+  try{const d=await mPost(id,{daily_budget:vWon*currencyOffset});if(d.error)throw new Error(d.error.message);statuses[id]={...statuses[id],daily_budget:vWon};delete editBudgets[id];toast('✅ 예산: '+vMan+'만원');render()}catch(e){toast('❌ '+e.message,false)}
 }
-function refresh(){if(curView==='cafe24')fetchCafe24();else fetchData()}
-
-// CSV
 function exportCSV(){
+  const lv=navStack.length===0?'campaign':navStack.length===1?'adset':'ad';
   const h=['이름','지출','노출','클릭','CTR(%)','결과','결과값','ROAS(%)','LP조회','LP→구매율(%)'];
   const c=[h.join(',')];
-  const lv=currentLevel();
-  rows.forEach(r=>{
-    const nm=lv==='ad'?r.ad_name:lv==='adset'?r.adset_name:r.campaign_name;
-    c.push([nm,r.spend,r.imps,r.clicks,r.ctr,r.purch,r.rev,r.roas,r.lp,r.lpCvr].map(v=>`"${v}"`).join(','));
-  });
-  const b=new Blob(['\uFEFF'+c.join('\n')],{type:'text/csv;charset=utf-8;'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`meta_${currentLevel()}_${kd(0)}.csv`;a.click();
+  rows.forEach(r=>{const nm=lv==='ad'?r.ad_name:lv==='adset'?r.adset_name:r.campaign_name;c.push([nm,r.spend,r.imps,r.clicks,r.ctr,r.purch,r.rev,r.roas,r.lp,r.lpCvr].map(v=>'"'+v+'"').join(','))});
+  const b=new Blob(['\uFEFF'+c.join('\n')],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='fungus_'+lv+'_'+kd(0)+'.csv';a.click();
 }
 
-// ── 카페24 매출 ──
-let curView='meta';
-async function fetchCafe24(){
-  const el=document.getElementById('cafe24-content');
-  el.innerHTML='<div style="text-align:center;padding:30px;color:#555"><span style="font-size:24px;display:inline-block;animation:spin 1s linear infinite">⏳</span><div style="margin-top:8px">카페24 매출 조회 중...</div></div>';
-  const[since,until]=DATES[dateIdx].fn();
-  const store=ACCOUNTS[acctIdx].c24;
-  try{
-    const r=await fetch(C24+'?store='+store+'&action=summary&start='+since+'&end='+until);
-    const d=await r.json();
-    if(!d.success)throw new Error(d.error||'Unknown error');
-    const data=d.data;
-    const metaSpend=rows.reduce((a,r)=>a+r.spend,0);
-    const trueRoas=metaSpend>0?((data.total_revenue/metaSpend)*100).toFixed(1):'—';
-    const rc2=v=>{const n=parseFloat(v);if(isNaN(n))return'#555';if(n>=250)return'#22c55e';if(n>=200)return'#a3e635';if(n>=180)return'#facc15';return'#ef4444'};
-    el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
-      <div style="background:linear-gradient(145deg,#0d0d20,#161628);border:1px solid #6366f1;border-radius:12px;padding:18px 20px">
-        <div style="font-size:11px;color:#555;letter-spacing:1px;font-weight:600;margin-bottom:6px;font-family:var(--mono)">진짜 ROAS (카페24 ÷ 메타 지출)</div>
-        <div style="font-size:24px;font-weight:800;color:${rc2(trueRoas)}">${trueRoas}%</div>
-        <div style="font-size:12px;color:#555;margin-top:4px">메타 지출 ${metaSpend.toLocaleString()}원 기준</div>
-      </div>
-      <div style="background:linear-gradient(145deg,#12121a,#161622);border:1px solid #1e1e2e;border-radius:12px;padding:18px 20px">
-        <div style="font-size:11px;color:#555;letter-spacing:1px;font-weight:600;margin-bottom:6px;font-family:var(--mono)">카페24 실매출</div>
-        <div style="font-size:24px;font-weight:800">${data.total_revenue.toLocaleString()}원</div>
-        <div style="font-size:12px;color:#555;margin-top:4px">유효 주문 ${data.paid_orders}건</div>
-      </div>
-      <div style="background:linear-gradient(145deg,#12121a,#161622);border:1px solid #1e1e2e;border-radius:12px;padding:18px 20px">
-        <div style="font-size:11px;color:#555;letter-spacing:1px;font-weight:600;margin-bottom:6px;font-family:var(--mono)">총 주문</div>
-        <div style="font-size:24px;font-weight:800">${data.total_orders}건</div>
-        <div style="font-size:12px;color:#555;margin-top:4px">취소/반품 ${data.cancelled_orders}건</div>
-      </div>
-      <div style="background:linear-gradient(145deg,#12121a,#161622);border:1px solid #1e1e2e;border-radius:12px;padding:18px 20px">
-        <div style="font-size:11px;color:#555;letter-spacing:1px;font-weight:600;margin-bottom:6px;font-family:var(--mono)">객단가</div>
-        <div style="font-size:24px;font-weight:800">${data.avg_order_value.toLocaleString()}원</div>
-        <div style="font-size:12px;color:#555;margin-top:4px">${d.period.start} ~ ${d.period.end}</div>
-      </div>
-    </div>
-    <div style="margin-top:12px;font-size:12px;color:#333">조회: ${new Date(d.fetched_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})} · ${ACCOUNTS[acctIdx].name} (${d.mall_id||''})</div>`;
-  }catch(e){
-    el.innerHTML='<div style="padding:30px;text-align:center;color:#ef4444">❌ '+e.message+'</div>';
-  }
-}
-function switchView(v){
-  curView=v;
-  document.getElementById('meta-section').style.display=v==='meta'?'block':'none';
-  document.getElementById('cafe24-section').style.display=v==='cafe24'?'block':'none';
-  const g=document.getElementById('view-tabs');
-  [...g.children].forEach(c=>c.classList.toggle('active',c.dataset.v===v));
-  if(v==='cafe24')fetchCafe24();
-}
-function initViewTabs(){
-  const g=document.getElementById('view-tabs');g.innerHTML='';
-  [{k:'meta',l:'📊 메타'},{k:'cafe24',l:'💰 카페24 매출'}].forEach(t=>{
-    const b=document.createElement('button');b.className='tab-btn'+(t.k===curView?' active':'');
-    b.textContent=t.l;b.dataset.v=t.k;b.onclick=()=>switchView(t.k);g.appendChild(b);
-  });
-}
-
-// Connect
-function connect(t,acct,savedAcctIdx){
-  TOKEN=t;ACCT=acct||ACCOUNTS[0].id;
-  // Find matching account index
-  acctIdx=savedAcctIdx||0;
-  const found=ACCOUNTS.findIndex(a=>a.id===ACCT);
-  if(found>=0)acctIdx=found;
-  ACCT=ACCOUNTS[acctIdx].id;
-  localStorage.setItem(SK,JSON.stringify({token:t,acct:ACCT,acctIdx}));
+// ═══════ CONNECT ═══════
+function connect(t){
+  TOKEN=t;localStorage.setItem(SK,t);
   document.getElementById('gate').style.display='none';
-  document.getElementById('dashboard').style.display='block';
-  navStack=[];curView='meta';
-  initViewTabs();
-  initDateTabs();
-  initAccountSwitcher();
-  detectCurrency().then(()=>fetchData());
+  document.getElementById('app').style.display='block';
+  // Detect currency
+  mGet('',BRANDS.frog.acct,{fields:'currency'}).then(d=>{
+    const zeroDec=['KRW','JPY','VND'];
+    currencyOffset=zeroDec.includes(d.currency||'KRW')?1:100;
+  }).catch(()=>{});
+  view='fungus';render();
 }
-function disconnect(){
-  TOKEN='';localStorage.removeItem(SK);
-  document.getElementById('gate').style.display='flex';
-  document.getElementById('dashboard').style.display='none';
-}
-function initDateTabs(){
-  const g=document.getElementById('date-tabs');g.innerHTML='';
-  DATES.forEach((d,i)=>{
-    const b=document.createElement('button');b.className=`tab-btn ${i===dateIdx?'active':''}`;b.textContent=d.label;
-    b.onclick=()=>{dateIdx=i;[...g.children].forEach((c,j)=>c.classList.toggle('active',j===i));navStack=[];if(curView==='cafe24')fetchCafe24();else fetchData()};
-    g.appendChild(b);
-  });
-}
-function initAccountSwitcher(){
-  const g=document.getElementById('acct-switcher');g.innerHTML='';
-  ACCOUNTS.forEach((a,i)=>{
-    const b=document.createElement('button');b.className=`acct-btn ${i===acctIdx?'active':''}`;b.textContent=a.label;
-    b.onclick=()=>switchAccount(i);
-    g.appendChild(b);
-  });
-  document.getElementById('dash-title').textContent=ACCOUNTS[acctIdx].name+' 광고 대시보드';
-}
-function switchAccount(i){
-  acctIdx=i;ACCT=ACCOUNTS[i].id;
-  navStack=[];sortCol='spend';sortDir='desc';
-  const g=document.getElementById('acct-switcher');
-  [...g.children].forEach((c,j)=>c.classList.toggle('active',j===i));
-  document.getElementById('dash-title').textContent=ACCOUNTS[i].name+' 광고 대시보드';
-  localStorage.setItem(SK,JSON.stringify({token:TOKEN,acct:ACCT,acctIdx}));
-  detectCurrency().then(()=>fetchData());
-}
+function disconnect(){TOKEN='';localStorage.removeItem(SK);document.getElementById('gate').style.display='flex';document.getElementById('app').style.display='none'}
 
-// Init
+// ═══════ INIT ═══════
 (function(){
   const saved=localStorage.getItem(SK);
   const inp=document.getElementById('token-input');
-  const acctInp=document.getElementById('acct-input');
   const btn=document.getElementById('connect-btn');
-  acctInp.value='act_1517925575938989';
-
   inp.addEventListener('input',()=>{btn.disabled=!inp.value.startsWith('EAA')});
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&inp.value.startsWith('EAA'))connect(inp.value.trim(),acctInp.value.trim())});
-  btn.addEventListener('click',()=>{if(inp.value.startsWith('EAA'))connect(inp.value.trim(),acctInp.value.trim())});
-
-  if(saved){try{const s=JSON.parse(saved);if(s.token&&s.token.startsWith('EAA'))connect(s.token,s.acct,s.acctIdx)}catch{}}
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&inp.value.startsWith('EAA'))connect(inp.value.trim())});
+  btn.addEventListener('click',()=>{if(inp.value.startsWith('EAA'))connect(inp.value.trim())});
+  if(saved&&saved.startsWith('EAA'))connect(saved);
 })();
 </script>
-</body>
-</html>
+</body></html>
