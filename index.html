@@ -475,7 +475,14 @@ function disconnect(){TOKEN='';localStorage.removeItem(SK);document.getElementBy
   const saved=localStorage.getItem(SK);
   const inp=document.getElementById('token-input');
   const btn=document.getElementById('connect-btn');
-  inp.addEventListener('input',()=>{btn.disabled=!inp.value.startsWith('EAA')});
+  function checkToken(){
+    var v=inp.value.trim();
+    btn.disabled=!v.startsWith('EAA');
+    if(v.startsWith('EAA')&&v.length>50)connect(v);
+  }
+  inp.addEventListener('input',checkToken);
+  inp.addEventListener('paste',function(){setTimeout(checkToken,100)});
+  inp.addEventListener('change',checkToken);
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&inp.value.startsWith('EAA'))connect(inp.value.trim())});
   btn.addEventListener('click',()=>{if(inp.value.startsWith('EAA'))connect(inp.value.trim())});
   if(saved&&saved.startsWith('EAA'))connect(saved);
