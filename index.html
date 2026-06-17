@@ -102,18 +102,63 @@ tr:nth-child(even){background:#0b0b12}
 .error-box{padding:14px 18px;background:var(--red-bg);border:1px solid #3a1515;border-radius:10px;color:var(--red);margin-bottom:16px;font-size:13px}
 .footer{margin-top:16px;font-size:11px;color:#333;text-align:center}
 @media(max-width:768px){.cards-3,.cards-4{grid-template-columns:1fr}.card-value{font-size:22px}.nav-title{font-size:17px}}
+
+/* PIN Screen */
+.pin-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:20px}
+.pin-title{font-size:13px;letter-spacing:3px;color:var(--accent);font-weight:700;font-family:var(--mono);margin-bottom:8px}
+.pin-sub{font-size:22px;font-weight:800;color:var(--text);margin-bottom:40px}
+.pin-dots{display:flex;gap:16px;margin-bottom:40px}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border2);transition:all .15s}
+.pin-dot.filled{background:var(--text);border-color:var(--text)}
+.pin-dot.wrong{border-color:var(--red);background:var(--red);animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.pin-pad{display:grid;grid-template-columns:repeat(3,80px);gap:12px}
+.pin-key{width:80px;height:80px;border-radius:50%;border:1px solid var(--border2);background:transparent;color:var(--text);font-size:28px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;user-select:none;-webkit-user-select:none;font-family:var(--font)}
+.pin-key:active{background:var(--bg4);transform:scale(.95)}
+.pin-key-empty{border:none;cursor:default}
+.pin-key-del{font-size:18px;color:var(--text3)}
+
+/* Token Setup (first time) */
+.setup{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.setup-card{background:linear-gradient(145deg,var(--bg3),var(--bg4));border:1px solid var(--border2);border-radius:16px;padding:40px;max-width:480px;width:100%}
 </style>
 </head>
 <body>
 
-<!-- Gate -->
-<div id="gate" class="gate">
-  <div class="gate-card">
-    <div class="gate-label">FUNGUS DASHBOARD</div>
-    <h1 class="gate-title">펑거스 대시보드</h1>
-    <p class="gate-desc">Meta 장기 액세스 토큰을 입력하세요.<br>토큰은 브라우저에 안전하게 저장됩니다.</p>
-    <input type="password" id="token-input" class="gate-input" placeholder="EAAX..." autocomplete="off">
-    <button id="connect-btn" class="gate-btn" disabled>연결하기</button>
+<!-- PIN Screen -->
+<div id="pin-screen" class="pin-screen">
+  <div class="pin-title">FUNGUS DASHBOARD</div>
+  <div class="pin-sub">암호 입력</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot" id="dot0"></div>
+    <div class="pin-dot" id="dot1"></div>
+    <div class="pin-dot" id="dot2"></div>
+    <div class="pin-dot" id="dot3"></div>
+  </div>
+  <div class="pin-pad">
+    <div class="pin-key" onclick="pinKey('1')">1</div>
+    <div class="pin-key" onclick="pinKey('2')">2</div>
+    <div class="pin-key" onclick="pinKey('3')">3</div>
+    <div class="pin-key" onclick="pinKey('4')">4</div>
+    <div class="pin-key" onclick="pinKey('5')">5</div>
+    <div class="pin-key" onclick="pinKey('6')">6</div>
+    <div class="pin-key" onclick="pinKey('7')">7</div>
+    <div class="pin-key" onclick="pinKey('8')">8</div>
+    <div class="pin-key" onclick="pinKey('9')">9</div>
+    <div class="pin-key pin-key-empty"></div>
+    <div class="pin-key" onclick="pinKey('0')">0</div>
+    <div class="pin-key pin-key-del" onclick="pinDel()">⌫</div>
+  </div>
+</div>
+
+<!-- Token Setup (first time only) -->
+<div id="gate" class="setup" style="display:none">
+  <div class="setup-card">
+    <div style="font-size:13px;letter-spacing:3px;color:var(--accent);font-weight:700;font-family:var(--mono);margin-bottom:8px">FIRST TIME SETUP</div>
+    <h1 style="font-size:24px;font-weight:800;margin-bottom:8px">토큰 등록</h1>
+    <p style="color:var(--text3);font-size:14px;margin-bottom:24px;line-height:1.6">Meta 장기 액세스 토큰을 입력하세요.<br>최초 1회만 입력하면 됩니다.</p>
+    <input type="text" id="token-input" style="width:100%;padding:14px 16px;font-size:14px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;color:var(--text2);outline:none;font-family:var(--mono)" placeholder="EAAX..." autocomplete="off">
+    <button id="connect-btn" onclick="saveAndConnect()" style="width:100%;margin-top:16px;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">등록하기</button>
   </div>
 </div>
 
@@ -468,24 +513,55 @@ function connect(t){
   }).catch(()=>{});
   view='fungus';render();
 }
-function disconnect(){TOKEN='';localStorage.removeItem(SK);document.getElementById('gate').style.display='flex';document.getElementById('app').style.display='none'}
+function disconnect(){TOKEN='';document.getElementById('pin-screen').style.display='flex';document.getElementById('app').style.display='none';pinCode='';updateDots()}
+
+// ═══════ PIN ═══════
+const PIN_CORRECT='0115';
+let pinCode='';
+
+function pinKey(n){
+  if(pinCode.length>=4)return;
+  pinCode+=n;
+  updateDots();
+  if(pinCode.length===4){
+    setTimeout(()=>{
+      if(pinCode===PIN_CORRECT){
+        const saved=localStorage.getItem(SK);
+        if(saved&&saved.startsWith('EAA')){
+          document.getElementById('pin-screen').style.display='none';
+          connect(saved);
+        }else{
+          document.getElementById('pin-screen').style.display='none';
+          document.getElementById('gate').style.display='flex';
+        }
+      }else{
+        document.querySelectorAll('.pin-dot').forEach(d=>d.classList.add('wrong'));
+        setTimeout(()=>{pinCode='';updateDots()},500);
+      }
+    },150);
+  }
+}
+function pinDel(){if(pinCode.length>0){pinCode=pinCode.slice(0,-1);updateDots()}}
+function updateDots(){for(var i=0;i<4;i++){var d=document.getElementById('dot'+i);d.classList.remove('filled','wrong');if(i<pinCode.length)d.classList.add('filled')}}
+function saveAndConnect(){
+  var v=document.getElementById('token-input').value.trim();
+  if(v.startsWith('EAA')&&v.length>50){
+    localStorage.setItem(SK,v);
+    document.getElementById('gate').style.display='none';
+    connect(v);
+  }
+}
 
 // ═══════ INIT ═══════
 (function(){
   const saved=localStorage.getItem(SK);
-  const inp=document.getElementById('token-input');
-  const btn=document.getElementById('connect-btn');
-  function checkToken(){
-    var v=inp.value.trim();
-    btn.disabled=!v.startsWith('EAA');
-    if(v.startsWith('EAA')&&v.length>50)connect(v);
+  if(saved&&saved.startsWith('EAA')){
+    // 토큰 있음 → PIN 화면
+    document.getElementById('pin-screen').style.display='flex';
+  }else{
+    // 토큰 없음 → PIN 화면 (PIN 통과 후 토큰 입력)
+    document.getElementById('pin-screen').style.display='flex';
   }
-  inp.addEventListener('input',checkToken);
-  inp.addEventListener('paste',function(){setTimeout(checkToken,100)});
-  inp.addEventListener('change',checkToken);
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&inp.value.startsWith('EAA'))connect(inp.value.trim())});
-  btn.addEventListener('click',()=>{if(inp.value.startsWith('EAA'))connect(inp.value.trim())});
-  if(saved&&saved.startsWith('EAA'))connect(saved);
 })();
 </script>
 </body></html>
